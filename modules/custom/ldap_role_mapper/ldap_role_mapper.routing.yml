@@ -1,0 +1,7 @@
+ldap_role_mapper.settings:
+  path: '/admin/config/people/ldap-role-mapper'
+  defaults:
+    _form: '\Drupal\ldap_role_mapper\Form\LdapRoleMapperSettingsForm'
+    _title: 'LDAP Role Mapper'
+  requirements:
+    _permission: 'administer ldap role mapper'

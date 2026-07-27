@@ -1,0 +1,41 @@
+# Friend-friendly Drupal stack: custom modules are bind-mounted for local development.
+services:
+  drupal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drupal-ldap-auth
+    ports:
+      - "8080:80"
+    volumes:
+      - ./modules/custom:/opt/drupal/web/modules/custom
+      - ./patches:/opt/drupal/patches:ro
+      - drupal-files:/opt/drupal/web/sites/default/files
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DRUPAL_DB_HOST: mysql
+      DRUPAL_DB_NAME: drupal
+      DRUPAL_DB_USER: drupal
+      DRUPAL_DB_PASSWORD: drupal
+
+  mysql:
+    image: mysql:8.4
+    container_name: drupal-ldap-auth-mysql
+    environment:
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mysql-data:
+  drupal-files:

@@ -1,0 +1,3 @@
+administer ldap role mapper:
+  title: 'Administer LDAP Role Mapper'
+  restrict access: true

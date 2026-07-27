@@ -1,0 +1,20 @@
+services:
+  logger.channel.ldap_role_mapper:
+    parent: logger.channel_base
+    arguments: ['ldap_role_mapper']
+
+  ldap_role_mapper.synchronizer:
+    class: Drupal\ldap_role_mapper\Service\LdapRoleSynchronizer
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@ldap.group_manager'
+      - '@logger.channel.ldap_role_mapper'
+
+  ldap_role_mapper.login_subscriber:
+    class: Drupal\ldap_role_mapper\EventSubscriber\LdapLoginRoleSyncSubscriber
+    arguments:
+      - '@ldap_role_mapper.synchronizer'
+      - '@logger.channel.ldap_role_mapper'
+    tags:
+      - { name: event_subscriber }

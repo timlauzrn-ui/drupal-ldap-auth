@@ -1,0 +1,16 @@
+--- a/src/GutenbergContentTypeManager.php
++++ b/src/GutenbergContentTypeManager.php
+@@ -120,6 +120,13 @@
+       return $node_type->get('type');
+     }
+ 
++    // Group's node creation route identifies the target bundle through the
++    // relationship plugin ID, e.g. "group_node:article".
++    $plugin_id = $route_match->getParameter('plugin_id');
++    if (is_string($plugin_id) && str_starts_with($plugin_id, 'group_node:')) {
++      return substr($plugin_id, strlen('group_node:'));
++    }
++
+     // Otherwise, invoke all hooks to resolve the content type.
+     $hook = 'gutenberg_node_type_route';
+     $hook_results = $this->moduleHandler->invokeAll($hook, [$route_match]);

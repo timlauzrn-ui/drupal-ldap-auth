@@ -1,0 +1,11 @@
+# Ignore nothing project-specific yet; Drupal runtime lives in the container.
+.DS_Store
+*.swp
+/.idea/
+/.vscode/
+vendor/
+web/
+composer.lock
+.env
+*.sql
+*.sqlite

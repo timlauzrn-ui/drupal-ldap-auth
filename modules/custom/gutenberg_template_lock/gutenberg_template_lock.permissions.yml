@@ -1,0 +1,4 @@
+unlock gutenberg template:
+  title: 'Unlock Gutenberg template'
+  description: 'Allow moving, deleting, and adding blocks even when the content type uses template lock all.'
+  restrict access: true
