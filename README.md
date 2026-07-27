@@ -11,7 +11,7 @@ Forkable Drupal 11 project with:
 Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ```bash
-git clone https://github.com/ZeroNight1v1/drupal-ldap-auth.git
+git clone https://github.com/timlauzrn-ui/drupal-ldap-auth.git
 cd drupal-ldap-auth
 chmod +x scripts/*.sh
 ./scripts/setup-compose.sh
