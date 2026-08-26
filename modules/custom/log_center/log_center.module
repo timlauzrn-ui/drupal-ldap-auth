@@ -1,0 +1,112 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Hooks for Log Center capture and cron retention.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_cron().
+ */
+function log_center_cron(): void {
+  \Drupal::service('log_center.retention')->purge();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user login — detect failures.
+ */
+function log_center_form_user_login_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $form['#validate'][] = 'log_center_user_login_validate_log';
+}
+
+/**
+ * Log failed login attempts (security).
+ */
+function log_center_user_login_validate_log(array &$form, FormStateInterface $form_state): void {
+  if (!$form_state->getErrors()) {
+    // Successful validation path — success is logged via access + optional custom.
+    return;
+  }
+  // Only when credentials were submitted.
+  $name = (string) $form_state->getValue('name');
+  if ($name === '') {
+    return;
+  }
+  /** @var \Drupal\log_center\Service\LogCenterWriter $writer */
+  $writer = \Drupal::service('log_center.writer');
+  $request = \Drupal::request();
+  $writer->security('Failed login attempt for username ' . $name, [
+    'uid' => 0,
+    'username' => $name,
+    'ip' => $request->getClientIp() ?? '',
+    'method' => $request->getMethod(),
+    'path' => $request->getRequestUri(),
+    'status_code' => 401,
+    'user_agent' => (string) $request->headers->get('User-Agent', ''),
+    'channel' => 'security',
+    'severity' => 'warning',
+    'context' => [
+      'errors' => array_keys($form_state->getErrors()),
+    ],
+  ]);
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function log_center_user_login($account): void {
+  \Drupal::service('log_center.writer')->custom('User login: ' . $account->getAccountName(), [
+    'uid' => (int) $account->id(),
+    'username' => $account->getAccountName(),
+    'channel' => 'user',
+    'context' => ['event' => 'login'],
+  ]);
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function log_center_entity_insert(EntityInterface $entity): void {
+  log_center_log_entity_event($entity, 'created');
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function log_center_entity_update(EntityInterface $entity): void {
+  log_center_log_entity_event($entity, 'updated');
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function log_center_entity_delete(EntityInterface $entity): void {
+  log_center_log_entity_event($entity, 'deleted');
+}
+
+/**
+ * Write custom logs for key entity changes.
+ */
+function log_center_log_entity_event(EntityInterface $entity, string $op): void {
+  $type = $entity->getEntityTypeId();
+  if (!in_array($type, ['node', 'media', 'user', 'menu_link_content'], TRUE)) {
+    return;
+  }
+  // Avoid logging log-center config noise.
+  $label = method_exists($entity, 'label') ? (string) $entity->label() : $entity->id();
+  $message = sprintf('%s %s: %s (%s)', ucfirst($type), $op, $label, $entity->id());
+  \Drupal::service('log_center.writer')->custom($message, [
+    'channel' => 'entity',
+    'context' => [
+      'entity_type' => $type,
+      'entity_id' => $entity->id(),
+      'bundle' => method_exists($entity, 'bundle') ? $entity->bundle() : '',
+      'operation' => $op,
+    ],
+  ]);
+}

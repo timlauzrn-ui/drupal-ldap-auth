@@ -1,0 +1,3 @@
+drop_folder_uri: 'private://fnb-revenue'
+filename_pattern: 'Y-m-d'
+create_nodes_unpublished: false

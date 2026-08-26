@@ -1,0 +1,4 @@
+administer department access:
+  title: 'Administer department access'
+  description: 'Manage department role ↔ media folder mappings.'
+  restrict access: true

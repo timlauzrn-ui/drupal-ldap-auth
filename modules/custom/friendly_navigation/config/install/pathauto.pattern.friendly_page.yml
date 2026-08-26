@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: friendly_page
+label: 'Friendly page'
+type: 'canonical_entities:node'
+pattern: '[node:title]'
+selection_criteria:
+  9a8b7c6d-1111-2222-3333-444455556666:
+    id: 'entity_bundle:node'
+    bundles:
+      page: page
+    negate: false
+    context_mapping:
+      node: node
+selection_logic: and
+weight: -10
+relationships: {  }

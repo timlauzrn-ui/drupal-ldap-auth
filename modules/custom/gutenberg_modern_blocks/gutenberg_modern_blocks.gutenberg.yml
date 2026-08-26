@@ -1,0 +1,41 @@
+# Libraries for the Gutenberg editor and frontend.
+libraries-edit:
+  - gutenberg_modern_blocks/blocks
+libraries-view:
+  - gutenberg_modern_blocks/blocks
+  - gutenberg_modern_blocks/frontend
+
+# Register custom blocks so they appear in content-type allowed lists.
+custom-blocks:
+  categories:
+    - reference: design
+      name: Design
+      blocks:
+        - id: modern-blocks/hero
+          name: Hero
+        - id: modern-blocks/ad-slider
+          name: Ad Slider
+        - id: modern-blocks/marquee
+          name: Marquee / Ticker
+        - id: modern-blocks/logo-cloud
+          name: Logo Cloud
+        - id: modern-blocks/stats
+          name: Stats Row
+        - id: modern-blocks/bento
+          name: Bento Grid
+        - id: modern-blocks/feature-card
+          name: Feature Card
+        - id: modern-blocks/process
+          name: Process Steps
+        - id: modern-blocks/testimonials
+          name: Testimonials
+        - id: modern-blocks/pricing
+          name: Pricing Table
+        - id: modern-blocks/tabs
+          name: Tabs
+        - id: modern-blocks/cta-banner
+          name: CTA Banner
+        - id: modern-blocks/accordion
+          name: Accordion / FAQ
+        - id: modern-blocks/countdown
+          name: Countdown

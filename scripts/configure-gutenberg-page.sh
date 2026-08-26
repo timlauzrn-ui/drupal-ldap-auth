@@ -19,6 +19,11 @@ if (!NodeType::load("page")) {
   ])->save();
   echo "CREATED_PAGE_TYPE\n";
 }
+// Always keep submitted-by chrome off for Gutenberg pages.
+if ($page = NodeType::load("page")) {
+  $page->setDisplaySubmitted(FALSE);
+  $page->save();
+}
 if (!FieldStorageConfig::loadByName("node", "body")) {
   FieldStorageConfig::create([
     "field_name" => "body",
@@ -47,28 +52,11 @@ $config = \Drupal::configFactory()->getEditable("gutenberg.settings");
 // Enable Gutenberg experience for the Page content type.
 $config->set("page_enable_full", TRUE);
 
-$template = [
-  ["core/heading", ["level" => 1, "placeholder" => "Page title"]],
-  ["core/paragraph", ["placeholder" => "Intro paragraph — edit this text in place"]],
-  ["core/columns", ["columns" => 2], [
-    ["core/column", [], [
-      ["core/heading", ["level" => 2, "placeholder" => "Column heading"]],
-      ["core/paragraph", ["placeholder" => "Column text"]],
-      ["core/image", []],
-    ]],
-    ["core/column", [], [
-      ["core/heading", ["level" => 2, "placeholder" => "Documents"]],
-      ["core/paragraph", ["placeholder" => "Add supporting text"]],
-      ["core/file", []],
-    ]],
-  ]],
-  ["core/group", [], [
-    ["core/heading", ["level" => 2, "placeholder" => "Additional content"]],
-    ["core/list", []],
-  ]],
-];
+// SAFE flat template: empty attrs must be {} not [].
+// Nested columns/group templates have caused Gutenberg to malfunction in 3.0.6.
+$json = "[[\"core/heading\",{\"level\":1,\"placeholder\":\"Page title\"}],[\"core/paragraph\",{\"placeholder\":\"Intro — edit this text in place\"}],[\"core/heading\",{\"level\":2,\"placeholder\":\"Section heading\"}],[\"core/paragraph\",{\"placeholder\":\"Body paragraph for testing\"}],[\"core/image\",{}],[\"core/paragraph\",{\"placeholder\":\"Caption or follow-up text under the image\"}],[\"core/list\",{}]]";
 
-$config->set("page_template", json_encode($template, JSON_UNESCAPED_SLASHES));
+$config->set("page_template", $json);
 $config->set("page_template_lock", "all");
 
 $allowed = [

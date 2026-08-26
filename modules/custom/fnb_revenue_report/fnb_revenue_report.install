@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install: content type, fields, private drop directory.
+ */
+
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Implements hook_install().
+ */
+function fnb_revenue_report_install(): void {
+  fnb_revenue_report_ensure_bundle();
+  fnb_revenue_report_ensure_drop_folder();
+}
+
+/**
+ * Ensure content type and fields exist (also callable from configure scripts).
+ */
+function fnb_revenue_report_ensure_bundle(): void {
+  if (!NodeType::load('fnb_daily_revenue_report')) {
+    $type = NodeType::create([
+      'type' => 'fnb_daily_revenue_report',
+      'name' => 'F&B Daily Revenue Report',
+      'description' => 'Daily F&B revenue PDF linked from the finance calendar.',
+      'new_revision' => TRUE,
+      'display_submitted' => FALSE,
+    ]);
+    $type->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_report_date')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_report_date',
+      'entity_type' => 'node',
+      'type' => 'datetime',
+      'settings' => ['datetime_type' => 'date'],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+  if (!FieldConfig::loadByName('node', 'fnb_daily_revenue_report', 'field_report_date')) {
+    FieldConfig::create([
+      'field_name' => 'field_report_date',
+      'entity_type' => 'node',
+      'bundle' => 'fnb_daily_revenue_report',
+      'label' => 'Report date',
+      'required' => TRUE,
+      'settings' => [],
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_report_file')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_report_file',
+      'entity_type' => 'node',
+      'type' => 'file',
+      'settings' => [
+        'target_type' => 'file',
+        'display_field' => FALSE,
+        'display_default' => FALSE,
+        'uri_scheme' => 'private',
+      ],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+  if (!FieldConfig::loadByName('node', 'fnb_daily_revenue_report', 'field_report_file')) {
+    FieldConfig::create([
+      'field_name' => 'field_report_file',
+      'entity_type' => 'node',
+      'bundle' => 'fnb_daily_revenue_report',
+      'label' => 'Report PDF',
+      'required' => TRUE,
+      'settings' => [
+        'file_directory' => 'fnb-revenue',
+        'file_extensions' => 'pdf',
+        'max_filesize' => '',
+        'description_field' => FALSE,
+        'handler' => 'default:file',
+        'handler_settings' => [],
+      ],
+    ])->save();
+  }
+
+  if (!FieldStorageConfig::loadByName('node', 'field_source_filename')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_source_filename',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'settings' => ['max_length' => 255, 'is_ascii' => FALSE, 'case_sensitive' => FALSE],
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ])->save();
+  }
+  if (!FieldConfig::loadByName('node', 'fnb_daily_revenue_report', 'field_source_filename')) {
+    FieldConfig::create([
+      'field_name' => 'field_source_filename',
+      'entity_type' => 'node',
+      'bundle' => 'fnb_daily_revenue_report',
+      'label' => 'Source filename',
+      'required' => FALSE,
+      'settings' => [],
+    ])->save();
+  }
+
+  $form = EntityFormDisplay::load('node.fnb_daily_revenue_report.default')
+    ?: EntityFormDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => 'fnb_daily_revenue_report',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  $form->setComponent('title', ['type' => 'string_textfield', 'weight' => -5]);
+  $form->setComponent('field_report_date', [
+    'type' => 'datetime_default',
+    'weight' => 1,
+    'settings' => [],
+  ]);
+  $form->setComponent('field_report_file', [
+    'type' => 'file_generic',
+    'weight' => 2,
+    'settings' => ['progress_indicator' => 'throbber'],
+  ]);
+  $form->setComponent('field_source_filename', [
+    'type' => 'string_textfield',
+    'weight' => 3,
+  ]);
+  $form->save();
+
+  $view = EntityViewDisplay::load('node.fnb_daily_revenue_report.default')
+    ?: EntityViewDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => 'fnb_daily_revenue_report',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  $view->removeComponent('uid');
+  $view->removeComponent('created');
+  $view->removeComponent('links');
+  $view->setComponent('field_report_date', [
+    'type' => 'datetime_default',
+    'label' => 'inline',
+    'weight' => 0,
+    'settings' => [
+      'timezone_override' => '',
+      'format_type' => 'html_date',
+    ],
+  ]);
+  $view->setComponent('field_report_file', [
+    'type' => 'file_default',
+    'label' => 'hidden',
+    'weight' => 1,
+    'settings' => ['use_description_as_link_text' => TRUE],
+  ]);
+  $view->setComponent('field_source_filename', [
+    'type' => 'string',
+    'label' => 'inline',
+    'weight' => 2,
+  ]);
+  $view->save();
+}
+
+/**
+ * Ensure the private drop-folder directory exists.
+ */
+function fnb_revenue_report_ensure_drop_folder(): void {
+  $uri = \Drupal::config('fnb_revenue_report.settings')->get('drop_folder_uri') ?: 'private://fnb-revenue';
+  $fs = \Drupal::service('file_system');
+  try {
+    $fs->prepareDirectory($uri, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY | \Drupal\Core\File\FileSystemInterface::MODIFY_PERMISSIONS);
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('fnb_revenue_report')->warning('Could not prepare drop folder @uri: @msg', [
+      '@uri' => $uri,
+      '@msg' => $e->getMessage(),
+    ]);
+  }
+}

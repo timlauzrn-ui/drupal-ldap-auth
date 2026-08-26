@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Friendly navigation and URL UX helpers.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_install().
+ */
+function friendly_navigation_install(): void {
+  \Drupal::service('friendly_navigation.menu_sync')->syncAll();
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function friendly_navigation_form_node_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $account = \Drupal::currentUser();
+  $is_admin = $account->hasPermission('administer url aliases')
+    || $account->hasPermission('administer nodes')
+    || (int) $account->id() === 1;
+
+  // Hide manual URL alias for non-admins — Pathauto generates it.
+  if (!$is_admin) {
+    if (isset($form['path'])) {
+      $form['path']['#access'] = FALSE;
+    }
+    // Pathauto widget may live under pathauto key.
+    if (isset($form['path']['widget'][0]['pathauto'])) {
+      $form['path']['#access'] = FALSE;
+    }
+  }
+  else {
+    if (isset($form['path']['widget'][0])) {
+      $form['path']['widget'][0]['#title'] = t('URL settings (advanced)');
+      $form['path']['#open'] = FALSE;
+    }
+  }
+
+  // Simplify Menu settings for everyone.
+  if (!isset($form['menu'])) {
+    return;
+  }
+
+  $form['menu']['#title'] = t('Show in navigation menu');
+  $form['menu']['#description'] = t('Add this page to the public Main menu or your department menu. The URL is created automatically from the page title — you do not need to type a path.');
+  $form['menu']['#open'] = TRUE;
+
+  $menus = \Drupal::service('friendly_navigation.menu_sync')->getMenusForAccount($account);
+  if (isset($form['menu']['menu_parent'])) {
+    // Restrict parent options to allowed menus only.
+    $options = $form['menu']['menu_parent']['#options'] ?? [];
+    $filtered = [];
+    foreach ($options as $key => $label) {
+      // Keys look like "main:" or "main:menu_link_content:uuid" or "dept_mis:".
+      $menu_id = explode(':', (string) $key, 2)[0];
+      if (isset($menus[$menu_id])) {
+        $filtered[$key] = $label;
+      }
+    }
+    if ($filtered) {
+      $form['menu']['menu_parent']['#options'] = $filtered;
+    }
+    $form['menu']['menu_parent']['#title'] = t('Menu and parent item');
+    $form['menu']['menu_parent']['#description'] = t('Choose Main menu (public) or a department menu, then an optional parent link.');
+  }
+  if (isset($form['menu']['title'])) {
+    $form['menu']['title']['#title'] = t('Menu label');
+    $form['menu']['title']['#description'] = t('Text shown in the menu. Defaults to the page title.');
+  }
+  if (isset($form['menu']['enabled'])) {
+    $form['menu']['enabled']['#title'] = t('Show this page in a menu');
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function friendly_navigation_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  if ($route_name === 'help.page.friendly_navigation') {
+    return '<p>' . t('Pages get automatic URLs from their titles (Pathauto). Use <em>Show this page in a menu</em> on the page form to add links to the public Main menu or your department menu. Department menus appear as a second navigation bar for members of that department.') . '</p>';
+  }
+}

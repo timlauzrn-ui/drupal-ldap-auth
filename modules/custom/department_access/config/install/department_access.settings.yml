@@ -1,0 +1,12 @@
+departments:
+  - id: mis
+    label: MIS
+    role: mis
+    folder_name: MIS
+  - id: sustainability
+    label: Sustainability
+    role: sustainability
+    folder_name: Sustainability
+primary_department_priority:
+  - mis
+  - sustainability

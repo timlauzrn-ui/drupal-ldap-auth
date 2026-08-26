@@ -1,0 +1,6 @@
+department_access.settings:
+  title: 'Department access'
+  description: 'Map department roles to media folders (Root > Department).'
+  route_name: department_access.settings
+  parent: user.admin_index
+  weight: 25

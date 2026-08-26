@@ -18,6 +18,10 @@ RUN composer require --no-interaction \
     'drupal/ldap:^4.12' \
     'drupal/externalauth:^2.0' \
     'drupal/gutenberg:3.0.6' \
+    'drupal/media_directories:^3.0@beta' \
+    'drupal/pathauto:^1.13' \
+    'drupal/token:^1.15' \
+    'drupal/easy_breadcrumb:^2.0' \
     'drush/drush' \
   && chown -R www-data:www-data /opt/drupal/vendor /opt/drupal/composer.json /opt/drupal/composer.lock /opt/drupal/web/modules/contrib \
   || true

@@ -1,0 +1,23 @@
+retention_days: 90
+access_logging: true
+skip_path_prefixes:
+  - /core/
+  - /modules/
+  - /themes/
+  - /libraries/
+  - /sites/default/files/
+  - /admin/reports/log-center
+skip_extensions:
+  - css
+  - js
+  - map
+  - ico
+  - png
+  - jpg
+  - jpeg
+  - gif
+  - svg
+  - woff
+  - woff2
+  - ttf
+  - eot

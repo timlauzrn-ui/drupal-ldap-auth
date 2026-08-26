@@ -1,0 +1,53 @@
+services:
+  logger.channel.log_center:
+    parent: logger.channel_base
+    arguments: ['log_center']
+
+  log_center.writer:
+    class: Drupal\log_center\Service\LogCenterWriter
+    arguments:
+      - '@database'
+      - '@current_user'
+      - '@request_stack'
+      - '@datetime.time'
+
+  log_center.query:
+    class: Drupal\log_center\Service\LogCenterQuery
+    arguments:
+      - '@database'
+
+  log_center.retention:
+    class: Drupal\log_center\Service\LogCenterRetention
+    arguments:
+      - '@database'
+      - '@config.factory'
+      - '@logger.channel.log_center'
+
+  log_center.importer:
+    class: Drupal\log_center\Service\LogCenterImporter
+    arguments:
+      - '@log_center.writer'
+
+  log_center.access_subscriber:
+    class: Drupal\log_center\EventSubscriber\AccessLogSubscriber
+    arguments:
+      - '@log_center.writer'
+      - '@config.factory'
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }
+
+  log_center.security_subscriber:
+    class: Drupal\log_center\EventSubscriber\SecurityLogSubscriber
+    arguments:
+      - '@log_center.writer'
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }
+
+  logger.log_center:
+    class: Drupal\log_center\Logger\LogCenterLogger
+    arguments:
+      - '@log_center.writer'
+    tags:
+      - { name: logger }

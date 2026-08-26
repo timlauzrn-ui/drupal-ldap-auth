@@ -1,0 +1,9 @@
+view log center:
+  title: 'View Log Center'
+  description: 'Search and browse Access, Error, Security, Custom, and WAF logs.'
+  restrict access: true
+
+administer log center:
+  title: 'Administer Log Center'
+  description: 'Configure retention, access logging, and export settings.'
+  restrict access: true

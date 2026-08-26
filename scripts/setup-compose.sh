@@ -58,19 +58,50 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en \
   media_library \
   file \
   image \
+  taxonomy \
+  media_directories \
+  department_access \
   gutenberg \
   gutenberg_template_lock \
+  gutenberg_modern_blocks \
+  friendly_navigation \
+  log_center \
+  fnb_revenue_report \
   -y
 
 echo "==> Configuring Gutenberg Page template..."
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-page.sh"
 
+echo "==> Configuring modern Gutenberg blocks (Ad Slider)..."
+chmod +x "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
+
+echo "==> Content display: Gutenberg body only..."
+chmod +x "${SCRIPT_DIR}/configure-content-display.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-content-display.sh"
+
+echo "==> Configuring department media folders..."
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-department-media.sh"
+
+echo "==> Configuring friendly navigation, aliases, private media..."
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-friendly-nav.sh"
+
+echo "==> Configuring Log Center..."
+chmod +x "${SCRIPT_DIR}/configure-log-center.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-log-center.sh"
+
+echo "==> Configuring F&B revenue calendar..."
+chmod +x "${SCRIPT_DIR}/configure-fnb-revenue-calendar.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-fnb-revenue-calendar.sh"
+
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush cr
 
 echo
 echo "Ready: http://localhost:8080"
+echo "Log Center: http://localhost:8080/admin/reports/log-center"
+echo "F&B calendar: http://localhost:8080/finance/fnb-revenue-calendar"
 echo "Admin: admin / admin"
-echo "Editor (after configure script): create with scripts or UI"
+echo "Demo: misuser/misuser, sususer/sususer, finuser/finuser, fnbuser/fnbuser"
 echo
 echo "Develop: edit modules/custom/* on the host; they are bind-mounted into the container."
 echo "Then: docker exec -u www-data -w /opt/drupal ${CONTAINER} vendor/bin/drush cr"

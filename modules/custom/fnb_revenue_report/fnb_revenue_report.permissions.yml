@@ -1,0 +1,14 @@
+view fnb revenue reports:
+  title: 'View F&B revenue reports'
+  description: 'View the F&B revenue calendar and download private report PDFs.'
+  restrict access: true
+
+manage fnb revenue reports:
+  title: 'Manage F&B revenue reports'
+  description: 'Create, edit, and delete F&B daily revenue report nodes.'
+  restrict access: true
+
+administer fnb revenue report:
+  title: 'Administer F&B revenue report settings'
+  description: 'Configure drop-folder path and ingest settings.'
+  restrict access: true
