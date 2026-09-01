@@ -76,6 +76,10 @@ echo "==> Configuring modern Gutenberg blocks (Ad Slider)..."
 chmod +x "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
 
+echo "==> Configuring Bootstrap5 (front) + Gin (admin) themes..."
+chmod +x "${SCRIPT_DIR}/configure-themes.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-themes.sh"
+
 echo "==> Content display: Gutenberg body only..."
 chmod +x "${SCRIPT_DIR}/configure-content-display.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-content-display.sh"

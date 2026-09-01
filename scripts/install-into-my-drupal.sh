@@ -55,7 +55,7 @@ if ! docker exec "${CONTAINER}" php -m 2>/dev/null | grep -qi '^ldap$'; then
 fi
 
 echo "==> Ensuring Composer packages..."
-composer_require 'drupal/ldap:^4.12' 'drupal/externalauth:^2.0' 'drush/drush' 'drupal/gutenberg:3.0.6' 'drupal/media_directories:^3.0@beta' 'drupal/pathauto:^1.13' 'drupal/token:^1.15' 'drupal/easy_breadcrumb:^2.0'
+composer_require 'drupal/ldap:^4.12' 'drupal/externalauth:^2.0' 'drush/drush' 'drupal/gutenberg:3.0.6' 'drupal/media_directories:^3.0@beta' 'drupal/pathauto:^1.13' 'drupal/token:^1.15' 'drupal/easy_breadcrumb:^2.0' 'drupal/bootstrap5:^4.0' 'drupal/gin:^5.0' 'drupal/gin_toolbar:^3.0' 'drupal/fullcalendar_view:^5.2'
 
 echo "==> Applying Gutenberg compatibility patches (if present)..."
 if [[ -d "${PATCHES_DIR}" ]]; then
@@ -123,6 +123,10 @@ CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-page.sh"
 echo "==> Configuring modern Gutenberg blocks (Ad Slider)..."
 chmod +x "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
+
+echo "==> Configuring Bootstrap5 (front) + Gin (admin) themes..."
+chmod +x "${SCRIPT_DIR}/configure-themes.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-themes.sh"
 
 echo "==> Content display: Gutenberg body only (hide title/author/date)..."
 chmod +x "${SCRIPT_DIR}/configure-content-display.sh"

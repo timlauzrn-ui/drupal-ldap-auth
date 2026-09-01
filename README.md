@@ -10,7 +10,115 @@ Forkable Drupal 11 project with:
 6. **Modern Gutenberg blocks** — Ad Slider (timed rotating banners) plus expanded core blocks (gallery, cover, buttons, video, …)
 7. **F&B Daily Revenue Calendar** — mount/drop-folder PDFs (no Drupal copy), FullCalendar view, LDAP roles `FIN_dev` / `F&B_dev`
 
-## Quick start
+## Run on another PC (full guide)
+
+This repo is **code + setup scripts**. It does **not** include your live database or uploaded files. A fresh install gets the **same features/modules/themes**; pages/media you created on this laptop appear only if you also copy a database dump (optional, see below).
+
+### 1. Prerequisites on the other PC
+
+| Tool | Why |
+|------|-----|
+| [Git](https://git-scm.com/downloads) | Download the project |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs Drupal in a container (same approach as this laptop) |
+
+Install both, then start **Docker Desktop** and wait until it says Docker is running.
+
+### 2. Download (clone) from GitHub
+
+```bash
+git clone https://github.com/timlauzrn-ui/drupal-ldap-auth.git
+cd drupal-ldap-auth
+chmod +x scripts/*.sh
+```
+
+Or download the ZIP from the green **Code** button on GitHub → unzip → open that folder in Terminal.
+
+### 3. Recommended: start with Docker Compose (new PC)
+
+This builds a full stack (Drupal + MySQL), installs modules, themes (Bootstrap5 + Gin 5), and configures features:
+
+```bash
+./scripts/setup-compose.sh
+```
+
+First run can take several minutes (image build + Composer packages).
+
+When it finishes:
+
+- Site: **http://localhost:8080**
+- Login: **admin** / **admin**
+
+Container name for this path: `drupal-ldap-auth`.
+
+### 4. Alternate: stock `drupal` container (like this laptop’s `my-drupal`)
+
+Only use this if you already run an official Drupal image named `my-drupal` on port 8080:
+
+```bash
+docker run -d --name my-drupal -p 8080:80 drupal:11-php8.4-apache
+# wait ~30s, then:
+./scripts/install-into-my-drupal.sh
+```
+
+That script installs LDAP, Gutenberg, Log Center, themes, etc. into the existing container.
+
+### 5. Daily use after setup
+
+| Action | Compose stack | `my-drupal` stack |
+|--------|---------------|-------------------|
+| Start | `docker compose up -d` | `docker start my-drupal` |
+| Stop | `docker compose stop` | `docker stop my-drupal` |
+| Open site | http://localhost:8080 | http://localhost:8080 |
+
+### 6. Optional: copy **content** from this laptop (same pages/media)
+
+Features install automatically; **your pages, users, and files** live in the container DB/files. To mirror content:
+
+**On this laptop** (export):
+
+```bash
+# Database (SQLite example for my-drupal; adjust if you use MySQL)
+docker exec my-drupal bash -lc 'cd /opt/drupal/web/sites/default/files && tar czf - private public 2>/dev/null' > drupal-files-backup.tgz
+docker cp my-drupal:/opt/drupal/web/sites/default/files/db.sqlite ./drupal-db.sqlite 2>/dev/null \
+  || docker exec my-drupal bash -lc 'find /opt/drupal -name "*.sqlite" 2>/dev/null | head -5'
+```
+
+For the Compose MySQL stack, prefer:
+
+```bash
+docker exec drupal-ldap-auth-mysql mysqldump -udrupal -pdrupal drupal > drupal-db.sql
+```
+
+Copy `drupal-db.sql` / sqlite + `drupal-files-backup.tgz` to the other PC (USB, cloud, etc.), then import after setup. Ask if you want a one-shot export/import script.
+
+### 7. Point at your real Active Directory (optional)
+
+Default install uses Drupal’s local `admin` user. To use company AD:
+
+1. Log in as admin → **Configuration → People → LDAP**
+2. Add your LDAP server, bind DN, base DN, and group → role maps  
+   (or use `/admin/config/people/ldap-role-mapper` and department access settings)
+
+### 8. Verify everything works
+
+```bash
+# Compose:
+CONTAINER=drupal-ldap-auth ./scripts/verify-log-center.sh
+CONTAINER=drupal-ldap-auth ./scripts/verify-gutenberg.sh
+
+# Or my-drupal:
+CONTAINER=my-drupal ./scripts/verify-log-center.sh
+```
+
+### What you get vs this laptop
+
+| Same automatically | Not automatic |
+|--------------------|---------------|
+| Custom modules, themes (Bootstrap5 + Gin), Gutenberg blocks, Log Center, F&B calendar, LDAP mapper | Pages/articles you already wrote |
+| Port 8080, admin/admin on fresh install | Uploaded images/PDFs |
+| Scripts under `scripts/` | Live LDAP passwords / server secrets |
+
+## Quick start (same as §2–3)
 
 ```bash
 git clone https://github.com/timlauzrn-ui/drupal-ldap-auth.git
@@ -21,6 +129,17 @@ chmod +x scripts/*.sh
 ```
 
 Open http://localhost:8080 — `admin` / `admin`.
+
+## Themes
+
+- **Front (public site):** Bootstrap5 — wider content region than Olivero for Gutenberg pages  
+- **Admin:** Gin — modern backend UI  
+
+```bash
+CONTAINER=my-drupal ./scripts/configure-themes.sh
+```
+
+To compare with Olivero later: Appearance → set Default theme back to Olivero (admin can stay Gin).
 
 ## Navigation & URLs (user-friendly)
 

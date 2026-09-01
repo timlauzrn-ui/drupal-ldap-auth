@@ -22,8 +22,12 @@ RUN composer require --no-interaction \
     'drupal/pathauto:^1.13' \
     'drupal/token:^1.15' \
     'drupal/easy_breadcrumb:^2.0' \
+    'drupal/bootstrap5:^4.0' \
+    'drupal/gin:^5.0' \
+    'drupal/gin_toolbar:^3.0' \
+    'drupal/fullcalendar_view:^5.2' \
     'drush/drush' \
-  && chown -R www-data:www-data /opt/drupal/vendor /opt/drupal/composer.json /opt/drupal/composer.lock /opt/drupal/web/modules/contrib \
+  && chown -R www-data:www-data /opt/drupal/vendor /opt/drupal/composer.json /opt/drupal/composer.lock /opt/drupal/web/modules/contrib /opt/drupal/web/themes/contrib \
   || true
 
 # Patches and custom modules are mounted at runtime via docker-compose.
