@@ -1,0 +1,51 @@
+# Libraries for the Gutenberg editor and frontend.
+libraries-edit:
+  - hkcec_gutenberg_modern_blocks/blocks
+libraries-view:
+  - hkcec_gutenberg_modern_blocks/blocks
+  - hkcec_gutenberg_modern_blocks/frontend
+
+# Register custom blocks so they appear in content-type allowed lists.
+custom-blocks:
+  categories:
+    - reference: design
+      name: Design
+      blocks:
+        - id: hkcec/hero
+          name: Hero
+        - id: hkcec/ad-slider
+          name: Ad Slider
+        - id: hkcec/marquee
+          name: Marquee / Ticker
+        - id: hkcec/logo-cloud
+          name: Logo Cloud
+        - id: hkcec/stats
+          name: Stats Row
+        - id: hkcec/bento
+          name: Bento Grid
+        - id: hkcec/feature-card
+          name: Feature Card
+        - id: hkcec/process
+          name: Process Steps
+        - id: hkcec/testimonials
+          name: Testimonials
+        - id: hkcec/pricing
+          name: Pricing Table
+        - id: hkcec/tabs
+          name: Tabs
+        - id: hkcec/cta-banner
+          name: CTA Banner
+        - id: hkcec/accordion
+          name: Accordion / FAQ
+        - id: hkcec/countdown
+          name: Countdown
+        - id: hkcec/resource-grid
+          name: Resource / service cards
+        - id: hkcec/quick-nav
+          name: Quick Navigation
+        - id: hkcec/hot-news
+          name: Hot News
+        - id: hkcec/page-intro
+          name: Page intro
+        - id: hkcec/dept-layout
+          name: Department layout

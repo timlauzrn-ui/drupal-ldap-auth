@@ -1,0 +1,11 @@
+name: "HKCEC LDAP Role Mapper"
+type: module
+description: 'Maps LDAP/AD groups to Drupal roles on LDAP login and overwrites manually assigned roles.'
+package: HKCEC
+core_version_requirement: '^10.3 || ^11'
+configure: hkcec_ldap_role_mapper.settings
+dependencies:
+  - drupal:user
+  - ldap:ldap_authentication
+  - ldap:ldap_servers
+  - externalauth:externalauth

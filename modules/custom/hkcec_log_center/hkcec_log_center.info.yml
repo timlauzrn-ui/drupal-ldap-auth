@@ -1,0 +1,9 @@
+name: "HKCEC Log Center"
+type: module
+description: 'Admin Log Center: access, error, security, and custom logs with search, sort, CSV export, and retention.'
+package: HKCEC
+core_version_requirement: '^10.3 || ^11'
+configure: hkcec_log_center.settings
+dependencies:
+  - drupal:user
+  - drupal:system

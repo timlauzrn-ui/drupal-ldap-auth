@@ -1,7 +1,0 @@
-name: 'Gutenberg Modern Blocks'
-type: module
-description: 'Modern Gutenberg blocks for Drupal (Ad Slider and more).'
-package: Custom
-core_version_requirement: '^10.3 || ^11'
-dependencies:
-  - gutenberg:gutenberg

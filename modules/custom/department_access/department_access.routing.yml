@@ -1,7 +1,0 @@
-department_access.settings:
-  path: '/admin/config/people/department-access'
-  defaults:
-    _form: '\Drupal\department_access\Form\DepartmentAccessSettingsForm'
-    _title: 'Department access'
-  requirements:
-    _permission: 'administer department access'

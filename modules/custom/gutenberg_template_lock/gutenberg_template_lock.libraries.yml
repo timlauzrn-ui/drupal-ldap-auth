@@ -1,8 +1,0 @@
-gutenberg_template_lock:
-  version: 1.x
-  js:
-    js/template-lock.js: {}
-  dependencies:
-    - core/drupal
-    - core/drupalSettings
-    - core/once

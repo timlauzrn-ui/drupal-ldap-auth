@@ -1,0 +1,7 @@
+hkcec_fnb_revenue_report.settings:
+  path: '/admin/config/content/fnb-revenue-report'
+  defaults:
+    _form: '\Drupal\hkcec_fnb_revenue_report\Form\FnbRevenueSettingsForm'
+    _title: 'F&B revenue report settings'
+  requirements:
+    _permission: 'administer fnb revenue report'

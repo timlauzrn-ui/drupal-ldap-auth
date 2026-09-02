@@ -6,11 +6,11 @@ CONTAINER="${CONTAINER:-my-drupal}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-echo "==> Copy friendly_navigation module..."
+echo "==> Copy hkcec_friendly_navigation module..."
 docker exec "${CONTAINER}" mkdir -p /opt/drupal/web/modules/custom
-docker exec "${CONTAINER}" rm -rf /opt/drupal/web/modules/custom/friendly_navigation
-docker cp "${PROJECT_ROOT}/modules/custom/friendly_navigation/." "${CONTAINER}:/opt/drupal/web/modules/custom/friendly_navigation"
-docker exec "${CONTAINER}" chown -R www-data:www-data /opt/drupal/web/modules/custom/friendly_navigation
+docker exec "${CONTAINER}" rm -rf /opt/drupal/web/modules/custom/hkcec_friendly_navigation
+docker cp "${PROJECT_ROOT}/modules/custom/hkcec_friendly_navigation/." "${CONTAINER}:/opt/drupal/web/modules/custom/hkcec_friendly_navigation"
+docker exec "${CONTAINER}" chown -R www-data:www-data /opt/drupal/web/modules/custom/hkcec_friendly_navigation
 
 echo "==> Ensure private files path in settings.php..."
 docker exec "${CONTAINER}" bash -c "
@@ -41,7 +41,7 @@ fi
 echo "==> Enable modules..."
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en \
   pathauto token easy_breadcrumb menu_ui menu_link_content \
-  friendly_navigation \
+  hkcec_friendly_navigation \
   -y
 
 echo "==> Pathauto patterns + settings..."
@@ -109,7 +109,7 @@ foreach ($fields as [$entity, $name]) {
 
 echo "==> Sync menus and blocks..."
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-\Drupal::service("friendly_navigation.menu_sync")->syncAll();
+\Drupal::service("hkcec_friendly_navigation.menu_sync")->syncAll();
 echo "MENU_SYNC_OK\n";
 '
 

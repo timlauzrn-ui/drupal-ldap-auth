@@ -1,0 +1,7 @@
+name: "HKCEC Gutenberg Modern Blocks"
+type: module
+description: 'Modern Gutenberg blocks for Drupal (Ad Slider and more).'
+package: HKCEC
+core_version_requirement: '^10.3 || ^11'
+dependencies:
+  - gutenberg:gutenberg

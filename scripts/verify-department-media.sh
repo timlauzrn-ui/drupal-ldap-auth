@@ -10,7 +10,7 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush pm:list -
 
 echo "==> Folders + roles"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$resolver = \Drupal::service("department_access.resolver");
+$resolver = \Drupal::service("hkcec_department_access.resolver");
 $mis_tid = $resolver->getFolderTermIdForDepartment("mis");
 $sus_tid = $resolver->getFolderTermIdForDepartment("sustainability");
 if (!$mis_tid || !$sus_tid) { throw new \Exception("Missing department folder terms"); }
@@ -31,8 +31,8 @@ $sus = user_load_by_name("sususer");
 if (!$mis || !$sus) { throw new \Exception("Demo users misuser/sususer missing"); }
 
 $switcher = \Drupal::service("account_switcher");
-$resolver = \Drupal::service("department_access.resolver");
-$access = \Drupal::service("department_access.media_access");
+$resolver = \Drupal::service("hkcec_department_access.resolver");
+$access = \Drupal::service("hkcec_department_access.media_access");
 $mis_tid = (int) $resolver->getFolderTermIdForDepartment("mis");
 $sus_tid = (int) $resolver->getFolderTermIdForDepartment("sustainability");
 

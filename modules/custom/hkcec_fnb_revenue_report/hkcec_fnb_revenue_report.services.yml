@@ -1,0 +1,14 @@
+services:
+  logger.channel.hkcec_fnb_revenue_report:
+    parent: logger.channel_base
+    arguments: ['hkcec_fnb_revenue_report']
+
+  hkcec_fnb_revenue_report.drop_folder_scanner:
+    class: Drupal\hkcec_fnb_revenue_report\Service\DropFolderScanner
+    arguments:
+      - '@entity_type.manager'
+      - '@file_system'
+      - '@config.factory'
+      - '@datetime.time'
+      - '@logger.channel.hkcec_fnb_revenue_report'
+      - '@current_user'

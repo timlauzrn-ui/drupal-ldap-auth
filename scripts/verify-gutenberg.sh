@@ -48,7 +48,7 @@ echo "PERMISSIONS_OK\n";
 echo "==> Server-side root block extraction"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
 $markup = "<!-- wp:heading -->\n<h1>Hi</h1>\n<!-- /wp:heading -->\n<!-- wp:paragraph -->\n<p>Body</p>\n<!-- /wp:paragraph -->\n<!-- wp:columns -->\n<!-- wp:column -->\n<!-- wp:paragraph -->\n<p>Inner</p>\n<!-- /wp:paragraph -->\n<!-- /wp:column -->\n<!-- /wp:columns -->";
-$roots = gutenberg_template_lock_extract_root_block_names($markup);
+$roots = hkcec_gutenberg_template_lock_extract_root_block_names($markup);
 if ($roots !== ["core/heading", "core/paragraph", "core/columns"]) {
   throw new \Exception("root extract failed: " . implode(",", $roots));
 }

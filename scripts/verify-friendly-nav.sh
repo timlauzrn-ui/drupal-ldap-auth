@@ -46,7 +46,7 @@ echo "ALIAS_OK nid=", $node->id(), " alias=$alias\n";
 
 echo "==> Menus"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$sync = \Drupal::service("friendly_navigation.menu_sync");
+$sync = \Drupal::service("hkcec_friendly_navigation.menu_sync");
 foreach (["main", "dept_mis", "dept_sustainability"] as $mid) {
   if (!\Drupal\system\Entity\Menu::load($mid)) {
     throw new \Exception("Missing menu $mid");

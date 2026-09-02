@@ -1,0 +1,51 @@
+blocks:
+  version: 1.x
+  js:
+    js/hero-block.js: {}
+    js/ad-slider-block.js: {}
+    js/marquee-block.js: {}
+    js/logo-cloud-block.js: {}
+    js/stats-block.js: {}
+    js/bento-block.js: {}
+    js/feature-card-block.js: {}
+    js/process-block.js: {}
+    js/testimonials-block.js: {}
+    js/pricing-block.js: {}
+    js/tabs-block.js: {}
+    js/cta-banner-block.js: {}
+    js/accordion-block.js: {}
+    js/countdown-block.js: {}
+    js/resource-grid-block.js: {}
+    js/quick-nav-block.js: {}
+    js/hot-news-block.js: {}
+    js/page-intro-block.js: {}
+    js/dept-layout-block.js: {}
+  css:
+    theme:
+      css/ad-slider.css: {}
+      css/modern-blocks.css: {}
+      css/intranet-templates.css: {}
+  dependencies:
+    - core/drupal
+    - gutenberg/react
+    - gutenberg/element
+    - gutenberg/blocks
+    - gutenberg/block-editor
+    - gutenberg/components
+
+frontend:
+  version: 1.x
+  js:
+    js/ad-slider-frontend.js: {}
+    js/accordion-frontend.js: {}
+    js/countdown-frontend.js: {}
+    js/testimonials-frontend.js: {}
+    js/tabs-frontend.js: {}
+  css:
+    theme:
+      css/ad-slider.css: {}
+      css/modern-blocks.css: {}
+      css/intranet-templates.css: {}
+  dependencies:
+    - core/drupal
+    - core/once

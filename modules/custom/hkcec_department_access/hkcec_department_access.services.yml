@@ -1,0 +1,38 @@
+services:
+  logger.channel.hkcec_department_access:
+    parent: logger.channel_base
+    arguments: ['hkcec_department_access']
+
+  hkcec_department_access.resolver:
+    class: Drupal\hkcec_department_access\Service\DepartmentResolver
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+
+  hkcec_department_access.role_ensurer:
+    class: Drupal\hkcec_department_access\Service\DepartmentRoleEnsurer
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@logger.channel.hkcec_department_access'
+
+  hkcec_department_access.folder_sync:
+    class: Drupal\hkcec_department_access\Service\DepartmentFolderSync
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@logger.channel.hkcec_department_access'
+
+  hkcec_department_access.media_access:
+    class: Drupal\hkcec_department_access\Service\DepartmentMediaAccess
+    arguments:
+      - '@hkcec_department_access.resolver'
+      - '@current_user'
+
+  hkcec_department_access.config_subscriber:
+    class: Drupal\hkcec_department_access\EventSubscriber\DepartmentConfigSubscriber
+    arguments:
+      - '@hkcec_department_access.role_ensurer'
+      - '@hkcec_department_access.folder_sync'
+    tags:
+      - { name: event_subscriber }

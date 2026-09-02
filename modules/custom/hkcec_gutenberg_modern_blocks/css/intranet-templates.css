@@ -1,0 +1,317 @@
+/* HKCEC Intranet templates — landing + department (Figma) */
+
+:root {
+  --intranet-blue: #1e4b8c;
+  --intranet-blue-deep: #163a6e;
+  --intranet-blue-active: #2a5fad;
+  --intranet-text: #1a1a1a;
+  --intranet-muted: #6b7280;
+  --intranet-border: #e5e7eb;
+  --intranet-card-bg: #ffffff;
+  --intranet-sidebar-bg: #f3f4f6;
+  --intranet-radius: 12px;
+  --intranet-shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+/* —— Resource / service cards —— */
+.gb-resource-grid {
+  margin: 1.5rem 0 2rem;
+}
+
+.gb-resource-grid__inner {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.gb-resource-grid.cols-4 .gb-resource-grid__inner {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gb-resource-grid.cols-3 .gb-resource-grid__inner {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gb-resource-grid.cols-2 .gb-resource-grid__inner {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gb-resource-grid.cols-1 .gb-resource-grid__inner {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 992px) {
+  .gb-resource-grid.cols-4 .gb-resource-grid__inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .gb-resource-grid.cols-4 .gb-resource-grid__inner,
+  .gb-resource-grid.cols-3 .gb-resource-grid__inner,
+  .gb-resource-grid.cols-2 .gb-resource-grid__inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gb-resource-card {
+  background: var(--intranet-card-bg);
+  border: 1px solid var(--intranet-border);
+  border-radius: var(--intranet-radius);
+  box-shadow: var(--intranet-shadow);
+  padding: 1.25rem 1.35rem 1.1rem;
+}
+
+.gb-resource-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.gb-resource-card__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--intranet-blue);
+}
+
+.gb-resource-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--intranet-blue);
+}
+
+.gb-resource-card__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gb-resource-card__links li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.4rem 0;
+  color: var(--intranet-text);
+  font-size: 0.95rem;
+}
+
+.gb-resource-card__marker {
+  color: #9ca3af;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.gb-resource-grid.links-arrow .gb-resource-card__marker {
+  color: var(--intranet-blue);
+}
+
+.gb-resource-card__links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.gb-resource-card__links a:hover,
+.gb-resource-card__links a:focus {
+  color: var(--intranet-blue);
+  text-decoration: underline;
+}
+
+.gb-resource-card--editor {
+  margin-bottom: 1rem;
+  border-style: dashed;
+  background: #f8fafc;
+}
+
+.gb-resource-card__link-row {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed var(--intranet-border);
+}
+
+/* —— Hot News —— */
+.gb-hot-news {
+  margin: 2rem 0 2.5rem;
+}
+
+.gb-hot-news__heading {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--intranet-blue-deep);
+}
+
+.gb-hot-news__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+@media (max-width: 768px) {
+  .gb-hot-news__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gb-hot-news__card {
+  border-radius: var(--intranet-radius);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--intranet-border);
+  box-shadow: var(--intranet-shadow);
+}
+
+.gb-hot-news__card img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.gb-hot-news__title {
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
+  font-size: 1rem;
+  color: var(--intranet-text);
+}
+
+.gb-hot-news__link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+.gb-hot-news__link:hover .gb-hot-news__title {
+  color: var(--intranet-blue);
+}
+
+.gb-hot-news--editor .gb-hot-news__card--editor {
+  padding: 0.75rem;
+  border-style: dashed;
+}
+
+/* —— Page intro —— */
+.gb-page-intro {
+  margin: 1.25rem 0 1.5rem;
+}
+
+.gb-page-intro__title {
+  margin: 0 0 0.4rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--intranet-blue-deep);
+  line-height: 1.2;
+}
+
+.gb-page-intro__subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--intranet-muted);
+  max-width: 42rem;
+}
+
+/* —— Quick Navigation —— */
+.gb-quick-nav {
+  background: var(--intranet-sidebar-bg);
+  border: 1px solid var(--intranet-border);
+  border-radius: var(--intranet-radius);
+  padding: 1.1rem 1.15rem;
+}
+
+.gb-quick-nav__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.gb-quick-nav__icon {
+  font-size: 1.1rem;
+}
+
+.gb-quick-nav__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--intranet-text);
+}
+
+.gb-quick-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gb-quick-nav__list li {
+  margin: 0.55rem 0;
+}
+
+.gb-quick-nav__list a {
+  color: var(--intranet-text);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.gb-quick-nav__list a:hover,
+.gb-quick-nav__list a:focus {
+  color: var(--intranet-blue);
+  text-decoration: underline;
+}
+
+.gb-quick-nav--editor,
+.gb-quick-nav__row {
+  margin-bottom: 0.5rem;
+}
+
+/* —— Department layout (sidebar + cards) —— */
+.gb-dept-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin: 0.5rem 0 2rem;
+}
+
+@media (max-width: 800px) {
+  .gb-dept-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gb-dept-layout .gb-resource-grid {
+  margin: 0;
+}
+
+.gb-dept-layout__editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+@media (max-width: 800px) {
+  .gb-dept-layout__editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gb-dept-layout--editor {
+  border: 1px dashed var(--intranet-border);
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: var(--intranet-radius);
+}
+
+/* Ad slider on landing: full bleed feel under intranet nav */
+.gb-ad-slider {
+  margin-top: 0;
+}
+
+/* Theme nudge: keep content wide for intranet templates (Bootstrap5) */
+.page-node-type-page .region-content,
+.page-node-type-department_page .region-content {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}

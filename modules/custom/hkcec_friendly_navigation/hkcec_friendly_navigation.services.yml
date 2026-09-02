@@ -1,0 +1,19 @@
+services:
+  logger.channel.hkcec_friendly_navigation:
+    parent: logger.channel_base
+    arguments: ['hkcec_friendly_navigation']
+
+  hkcec_friendly_navigation.menu_sync:
+    class: Drupal\hkcec_friendly_navigation\Service\DepartmentMenuSync
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@logger.channel.hkcec_friendly_navigation'
+      - '@hkcec_department_access.resolver'
+
+  hkcec_friendly_navigation.config_subscriber:
+    class: Drupal\hkcec_friendly_navigation\EventSubscriber\DepartmentConfigMenuSubscriber
+    arguments:
+      - '@hkcec_friendly_navigation.menu_sync'
+    tags:
+      - { name: event_subscriber }

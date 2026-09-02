@@ -1,0 +1,53 @@
+services:
+  logger.channel.hkcec_log_center:
+    parent: logger.channel_base
+    arguments: ['hkcec_log_center']
+
+  hkcec_log_center.writer:
+    class: Drupal\hkcec_log_center\Service\LogCenterWriter
+    arguments:
+      - '@database'
+      - '@current_user'
+      - '@request_stack'
+      - '@datetime.time'
+
+  hkcec_log_center.query:
+    class: Drupal\hkcec_log_center\Service\LogCenterQuery
+    arguments:
+      - '@database'
+
+  hkcec_log_center.retention:
+    class: Drupal\hkcec_log_center\Service\LogCenterRetention
+    arguments:
+      - '@database'
+      - '@config.factory'
+      - '@logger.channel.hkcec_log_center'
+
+  hkcec_log_center.importer:
+    class: Drupal\hkcec_log_center\Service\LogCenterImporter
+    arguments:
+      - '@hkcec_log_center.writer'
+
+  hkcec_log_center.access_subscriber:
+    class: Drupal\hkcec_log_center\EventSubscriber\AccessLogSubscriber
+    arguments:
+      - '@hkcec_log_center.writer'
+      - '@config.factory'
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }
+
+  hkcec_log_center.security_subscriber:
+    class: Drupal\hkcec_log_center\EventSubscriber\SecurityLogSubscriber
+    arguments:
+      - '@hkcec_log_center.writer'
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }
+
+  logger.hkcec_log_center:
+    class: Drupal\hkcec_log_center\Logger\LogCenterLogger
+    arguments:
+      - '@hkcec_log_center.writer'
+    tags:
+      - { name: logger }

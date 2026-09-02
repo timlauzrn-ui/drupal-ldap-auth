@@ -1,0 +1,13 @@
+hkcec_fnb_revenue_report.settings:
+  type: config_object
+  label: 'F&B revenue report settings'
+  mapping:
+    drop_folder_uri:
+      type: string
+      label: 'Drop folder URI (e.g. private://fnb-revenue)'
+    filename_pattern:
+      type: string
+      label: 'PHP date() pattern for filenames (default Y-m-d → YYYY-MM-DD.pdf)'
+    create_nodes_unpublished:
+      type: boolean
+      label: 'Create report nodes as unpublished'

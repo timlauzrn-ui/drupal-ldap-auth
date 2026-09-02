@@ -1,0 +1,11 @@
+name: "HKCEC Department Access"
+type: module
+description: 'Department roles registry and media folder ACL (Root > Department). Foundation for Phase B content layers.'
+package: HKCEC
+core_version_requirement: '^10.3 || ^11'
+configure: hkcec_department_access.settings
+dependencies:
+  - drupal:user
+  - drupal:media
+  - drupal:taxonomy
+  - media_directories:media_directories

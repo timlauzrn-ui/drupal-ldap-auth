@@ -5,7 +5,7 @@ set -euo pipefail
 CONTAINER="${CONTAINER:-my-drupal}"
 
 echo "==> Module + permissions"
-docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush pm:list --status=enabled --filter=log_center
+docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush pm:list --status=enabled --filter=hkcec_log_center
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
 $role = \Drupal\user\Entity\Role::load("security");
 if (!$role || !$role->hasPermission("view log center")) {
@@ -16,7 +16,7 @@ echo "SECURITY_ROLE_OK\n";
 
 echo "==> Write sample logs"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$w = \Drupal::service("log_center.writer");
+$w = \Drupal::service("hkcec_log_center.writer");
 $w->access("VERIFY access hit", ["path" => "/verify-access", "status_code" => 200, "method" => "GET"]);
 $w->error("VERIFY controlled error", ["channel" => "verify"]);
 $w->security("VERIFY failed login sim", ["status_code" => 401, "username" => "baduser"]);
@@ -27,7 +27,7 @@ echo "SAMPLES_OK\n";
 
 echo "==> Query filters + sort"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$q = \Drupal::service("log_center.query");
+$q = \Drupal::service("hkcec_log_center.query");
 $access = $q->build(["types" => ["access"], "path" => "verify-access"], "timestamp", "DESC")->range(0, 5)->execute()->fetchAll();
 if (!$access) { throw new \Exception("access filter failed"); }
 $sec = $q->build(["type" => "security"], "timestamp", "DESC")->range(0, 5)->execute()->fetchAll();
@@ -39,7 +39,7 @@ echo "==> Retention purge"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
 $db = \Drupal::database();
 $old = \Drupal::time()->getRequestTime() - (200 * 86400);
-$db->insert("log_center_entry")->fields([
+$db->insert("hkcec_log_center_entry")->fields([
   "type" => "custom",
   "severity" => "info",
   "timestamp" => $old,
@@ -54,15 +54,15 @@ $db->insert("log_center_entry")->fields([
   "context" => NULL,
   "channel" => "verify",
 ])->execute();
-$deleted = \Drupal::service("log_center.retention")->purge();
-$left = $db->select("log_center_entry", "l")->fields("l", ["id"])->condition("message", "OLD_ROW_TO_PURGE")->countQuery()->execute()->fetchField();
+$deleted = \Drupal::service("hkcec_log_center.retention")->purge();
+$left = $db->select("hkcec_log_center_entry", "l")->fields("l", ["id"])->condition("message", "OLD_ROW_TO_PURGE")->countQuery()->execute()->fetchField();
 if ((int) $left !== 0) { throw new \Exception("purge failed, row still present"); }
 echo "RETENTION_OK deleted=$deleted\n";
 '
 
 echo "==> Route access"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$access = \Drupal::service("access_manager")->checkNamedRoute("log_center.overview", [], \Drupal\user\Entity\User::getAnonymousUser(), TRUE);
+$access = \Drupal::service("access_manager")->checkNamedRoute("hkcec_log_center.overview", [], \Drupal\user\Entity\User::getAnonymousUser(), TRUE);
 if ($access->isAllowed()) { throw new \Exception("anonymous must not access log center"); }
 echo "ANON_DENIED_OK\n";
 '

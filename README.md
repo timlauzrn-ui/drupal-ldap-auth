@@ -2,7 +2,7 @@
 
 Forkable Drupal 11 project with:
 
-1. **AD/LDAP login** + **`ldap_role_mapper`**
+1. **AD/LDAP login** + **`hkcec_ldap_role_mapper`**
 2. **Gutenberg** with template lock for non-admins
 3. **Department media folders** (`Root > MIS`, …) with ACL
 4. **Friendly navigation** — public Main menu + department menus; auto URL aliases (Pathauto); private media files
@@ -130,6 +130,28 @@ chmod +x scripts/*.sh
 
 Open http://localhost:8080 — `admin` / `admin`.
 
+## Intranet Gutenberg templates (Figma)
+
+Matches the HKCEC Intranet Figma Make designs:
+
+| Design | Content type | Create URL |
+|--------|--------------|------------|
+| Landing (hero slider + 4 resource cards + Hot News) | Basic page | `/node/add/page` |
+| Department / HR (intro + quick nav + service cards) | Department page | `/node/add/department_page` |
+
+```bash
+CONTAINER=my-drupal ./scripts/configure-intranet-templates.sh
+```
+
+Pasteable template JSON (also applied by the script):
+
+- `templates/gutenberg-landing-page.json`
+- `templates/gutenberg-department-page.json`
+
+**Note:** The dark blue top bar (HKCEC Intranet / Human Resources / Finance / MIS / Others) is the **theme Main menu**, not Gutenberg. Edit under Structure → Menus → Main navigation. Breadcrumbs come from Easy Breadcrumb when enabled.
+
+New blocks for these templates: Resource / service cards, Hot News, Page intro, Quick Navigation, Department layout.
+
 ## Themes
 
 - **Front (public site):** Bootstrap5 — wider content region than Olivero for Gutenberg pages  
@@ -161,8 +183,8 @@ To compare with Olivero later: Appearance → set Default theme back to Olivero 
 - Filters: type, date range, username, IP, path, message, status; sortable columns; CSV export of current filters
 - Access: **administrator** and **`security`** role only (`view log center` / `administer log center`)
 - Demo security user after configure: `secuser` / `secuser`
-- Custom API: `\Drupal\log_center\LogCenter::log('custom', '…', ['context' => […]])`
-- WAF category is filterable; use `log_center.importer` for future JSON/CSV import (no appliance in this pass)
+- Custom API: `\Drupal\hkcec_log_center\LogCenter::log('custom', '…', ['context' => […]])`
+- WAF category is filterable; use `hkcec_log_center.importer` for future JSON/CSV import (no appliance in this pass)
 
 ```bash
 CONTAINER=my-drupal ./scripts/configure-log-center.sh
@@ -230,16 +252,26 @@ CONTAINER=my-drupal ./scripts/verify-log-center.sh
 CONTAINER=my-drupal ./scripts/verify-fnb-revenue-calendar.sh
 ```
 
-## Custom modules
+## Custom modules (HKCEC prefix)
+
+All custom modules use the `hkcec_` machine-name prefix and display as **HKCEC …** in the admin UI:
 
 ```
-modules/custom/ldap_role_mapper/
-modules/custom/gutenberg_template_lock/
-modules/custom/department_access/
-modules/custom/friendly_navigation/
-modules/custom/log_center/
-modules/custom/gutenberg_modern_blocks/
-modules/custom/fnb_revenue_report/
+modules/custom/hkcec_ldap_role_mapper/
+modules/custom/hkcec_gutenberg_template_lock/
+modules/custom/hkcec_department_access/
+modules/custom/hkcec_friendly_navigation/
+modules/custom/hkcec_log_center/
+modules/custom/hkcec_gutenberg_modern_blocks/
+modules/custom/hkcec_fnb_revenue_report/
+```
+
+Gutenberg block IDs use the `hkcec/` namespace (e.g. `hkcec/ad-slider`).
+
+If an existing site still has the old module names, run:
+
+```bash
+CONTAINER=my-drupal ./scripts/migrate-hkcec-modules.sh
 ```
 
 ## LDAP department mapping example

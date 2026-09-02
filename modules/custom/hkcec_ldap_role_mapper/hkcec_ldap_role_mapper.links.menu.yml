@@ -1,0 +1,6 @@
+hkcec_ldap_role_mapper.settings:
+  title: 'LDAP Role Mapper'
+  description: 'Map LDAP/AD groups to Drupal roles applied on LDAP login.'
+  route_name: hkcec_ldap_role_mapper.settings
+  parent: user.admin_index
+  weight: 20

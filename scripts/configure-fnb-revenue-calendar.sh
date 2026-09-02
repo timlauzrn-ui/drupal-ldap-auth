@@ -5,8 +5,8 @@ set -euo pipefail
 CONTAINER="${CONTAINER:-my-drupal}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SRC="${PROJECT_ROOT}/modules/custom/fnb_revenue_report"
-DEST="/opt/drupal/web/modules/custom/fnb_revenue_report"
+SRC="${PROJECT_ROOT}/modules/custom/hkcec_fnb_revenue_report"
+DEST="/opt/drupal/web/modules/custom/hkcec_fnb_revenue_report"
 
 composer_require() {
   if docker exec -u www-data -w /opt/drupal "${CONTAINER}" test -w composer.json 2>/dev/null; then
@@ -17,7 +17,7 @@ composer_require() {
   fi
 }
 
-echo "==> Copy fnb_revenue_report module..."
+echo "==> Copy hkcec_fnb_revenue_report module..."
 docker exec "${CONTAINER}" mkdir -p /opt/drupal/web/modules/custom
 docker exec "${CONTAINER}" rm -rf "${DEST}"
 docker cp "${SRC}/." "${CONTAINER}:${DEST}"
@@ -45,12 +45,12 @@ composer_require 'drupal/fullcalendar_view:^5.2' || composer_require 'drupal/ful
 
 echo "==> Enable modules..."
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en \
-  datetime file node user views views_ui fullcalendar_view fnb_revenue_report ldap_role_mapper -y
+  datetime file node user views views_ui fullcalendar_view hkcec_fnb_revenue_report hkcec_ldap_role_mapper -y
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-\Drupal::moduleHandler()->loadInclude("fnb_revenue_report", "install");
-fnb_revenue_report_ensure_bundle();
-fnb_revenue_report_ensure_drop_folder();
+\Drupal::moduleHandler()->loadInclude("hkcec_fnb_revenue_report", "install");
+hkcec_fnb_revenue_report_ensure_bundle();
+hkcec_fnb_revenue_report_ensure_drop_folder();
 echo "BUNDLE_OK\n";
 '
 
@@ -71,7 +71,7 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush role:perm
 
 echo "==> LDAP role mapper stubs (FIN_dev / F&B_dev)..."
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$cfg = \Drupal::configFactory()->getEditable("ldap_role_mapper.settings");
+$cfg = \Drupal::configFactory()->getEditable("hkcec_ldap_role_mapper.settings");
 $mappings = $cfg->get("mappings") ?: [];
 $wanted = [
   ["ldap_group" => "FIN_dev", "rid" => "fin_dev"],
@@ -250,7 +250,7 @@ if (!file_exists($file)) {
   file_put_contents($file, $pdf);
 }
 echo "STUB=", $file, "\n";
-$stats = \Drupal::service("fnb_revenue_report.drop_folder_scanner")->scan();
+$stats = \Drupal::service("hkcec_fnb_revenue_report.drop_folder_scanner")->scan();
 print_r($stats);
 '
 

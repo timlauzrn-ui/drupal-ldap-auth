@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install hooks for Log Center.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function hkcec_log_center_schema(): array {
+  $schema['hkcec_log_center_entry'] = [
+    'description' => 'Unified log center entries.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'type' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'custom',
+      ],
+      'severity' => [
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => 'info',
+      ],
+      'timestamp' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'username' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'ip' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'method' => [
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'path' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'status_code' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'user_agent' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'message' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ],
+      'context' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ],
+      'channel' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'type_timestamp' => ['type', 'timestamp'],
+      'uid' => ['uid'],
+      'ip' => ['ip'],
+      'path' => [['path', 191]],
+      'status_code' => ['status_code'],
+    ],
+  ];
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function hkcec_log_center_install(): void {
+  $role_storage = \Drupal::entityTypeManager()->getStorage('user_role');
+  if (!$role_storage->load('security')) {
+    $role = $role_storage->create([
+      'id' => 'security',
+      'label' => 'Security',
+    ]);
+    $role->grantPermission('view log center');
+    $role->grantPermission('administer log center');
+    $role->save();
+  }
+  else {
+    /** @var \Drupal\user\RoleInterface $role */
+    $role = $role_storage->load('security');
+    $role->grantPermission('view log center');
+    $role->grantPermission('administer log center');
+    $role->save();
+  }
+
+  /** @var \Drupal\user\RoleInterface|null $admin */
+  $admin = $role_storage->load('administrator');
+  if ($admin && !$admin->isAdmin()) {
+    $admin->grantPermission('view log center');
+    $admin->grantPermission('administer log center');
+    $admin->save();
+  }
+}

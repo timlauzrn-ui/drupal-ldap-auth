@@ -53,20 +53,20 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en \
   ldap_servers \
   ldap_user \
   ldap_authentication \
-  ldap_role_mapper \
+  hkcec_ldap_role_mapper \
   media \
   media_library \
   file \
   image \
   taxonomy \
   media_directories \
-  department_access \
+  hkcec_department_access \
   gutenberg \
-  gutenberg_template_lock \
-  gutenberg_modern_blocks \
-  friendly_navigation \
-  log_center \
-  fnb_revenue_report \
+  hkcec_gutenberg_template_lock \
+  hkcec_gutenberg_modern_blocks \
+  hkcec_friendly_navigation \
+  hkcec_log_center \
+  hkcec_fnb_revenue_report \
   -y
 
 echo "==> Configuring Gutenberg Page template..."
@@ -75,6 +75,10 @@ CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-page.sh"
 echo "==> Configuring modern Gutenberg blocks (Ad Slider)..."
 chmod +x "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
+
+echo "==> Configuring intranet landing + department Gutenberg templates..."
+chmod +x "${SCRIPT_DIR}/configure-intranet-templates.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-intranet-templates.sh"
 
 echo "==> Configuring Bootstrap5 (front) + Gin (admin) themes..."
 chmod +x "${SCRIPT_DIR}/configure-themes.sh"

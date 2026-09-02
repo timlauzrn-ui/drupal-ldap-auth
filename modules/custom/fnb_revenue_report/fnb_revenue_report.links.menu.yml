@@ -1,6 +1,0 @@
-fnb_revenue_report.settings:
-  title: 'F&B revenue reports'
-  description: 'Drop-folder path and filename pattern for daily revenue PDFs.'
-  route_name: fnb_revenue_report.settings
-  parent: system.admin_config_content
-  weight: 40

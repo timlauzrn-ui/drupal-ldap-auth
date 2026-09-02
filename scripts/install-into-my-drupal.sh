@@ -6,20 +6,20 @@ CONTAINER="${CONTAINER:-my-drupal}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-LDAP_SRC="${PROJECT_ROOT}/modules/custom/ldap_role_mapper"
-LDAP_DEST="/opt/drupal/web/modules/custom/ldap_role_mapper"
-GTL_SRC="${PROJECT_ROOT}/modules/custom/gutenberg_template_lock"
-GTL_DEST="/opt/drupal/web/modules/custom/gutenberg_template_lock"
-DEPT_SRC="${PROJECT_ROOT}/modules/custom/department_access"
-DEPT_DEST="/opt/drupal/web/modules/custom/department_access"
-FRIENDLY_SRC="${PROJECT_ROOT}/modules/custom/friendly_navigation"
-FRIENDLY_DEST="/opt/drupal/web/modules/custom/friendly_navigation"
-LOG_SRC="${PROJECT_ROOT}/modules/custom/log_center"
-LOG_DEST="/opt/drupal/web/modules/custom/log_center"
-GMB_SRC="${PROJECT_ROOT}/modules/custom/gutenberg_modern_blocks"
-GMB_DEST="/opt/drupal/web/modules/custom/gutenberg_modern_blocks"
-FNB_SRC="${PROJECT_ROOT}/modules/custom/fnb_revenue_report"
-FNB_DEST="/opt/drupal/web/modules/custom/fnb_revenue_report"
+LDAP_SRC="${PROJECT_ROOT}/modules/custom/hkcec_ldap_role_mapper"
+LDAP_DEST="/opt/drupal/web/modules/custom/hkcec_ldap_role_mapper"
+GTL_SRC="${PROJECT_ROOT}/modules/custom/hkcec_gutenberg_template_lock"
+GTL_DEST="/opt/drupal/web/modules/custom/hkcec_gutenberg_template_lock"
+DEPT_SRC="${PROJECT_ROOT}/modules/custom/hkcec_department_access"
+DEPT_DEST="/opt/drupal/web/modules/custom/hkcec_department_access"
+FRIENDLY_SRC="${PROJECT_ROOT}/modules/custom/hkcec_friendly_navigation"
+FRIENDLY_DEST="/opt/drupal/web/modules/custom/hkcec_friendly_navigation"
+LOG_SRC="${PROJECT_ROOT}/modules/custom/hkcec_log_center"
+LOG_DEST="/opt/drupal/web/modules/custom/hkcec_log_center"
+GMB_SRC="${PROJECT_ROOT}/modules/custom/hkcec_gutenberg_modern_blocks"
+GMB_DEST="/opt/drupal/web/modules/custom/hkcec_gutenberg_modern_blocks"
+FNB_SRC="${PROJECT_ROOT}/modules/custom/hkcec_fnb_revenue_report"
+FNB_DEST="/opt/drupal/web/modules/custom/hkcec_fnb_revenue_report"
 PATCHES_DIR="${PROJECT_ROOT}/patches"
 
 if ! docker inspect -f '{{.State.Running}}' "${CONTAINER}" 2>/dev/null | grep -qx true; then
@@ -100,20 +100,20 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en \
   ldap_servers \
   ldap_user \
   ldap_authentication \
-  ldap_role_mapper \
+  hkcec_ldap_role_mapper \
   media \
   media_library \
   file \
   image \
   taxonomy \
   media_directories \
-  department_access \
+  hkcec_department_access \
   gutenberg \
-  gutenberg_template_lock \
-  gutenberg_modern_blocks \
-  friendly_navigation \
-  log_center \
-  fnb_revenue_report \
+  hkcec_gutenberg_template_lock \
+  hkcec_gutenberg_modern_blocks \
+  hkcec_friendly_navigation \
+  hkcec_log_center \
+  hkcec_fnb_revenue_report \
   -y
 
 echo "==> Configuring Gutenberg Page template (lock=all)..."
@@ -123,6 +123,10 @@ CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-page.sh"
 echo "==> Configuring modern Gutenberg blocks (Ad Slider)..."
 chmod +x "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-gutenberg-modern-blocks.sh"
+
+echo "==> Configuring intranet landing + department Gutenberg templates..."
+chmod +x "${SCRIPT_DIR}/configure-intranet-templates.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-intranet-templates.sh"
 
 echo "==> Configuring Bootstrap5 (front) + Gin (admin) themes..."
 chmod +x "${SCRIPT_DIR}/configure-themes.sh"

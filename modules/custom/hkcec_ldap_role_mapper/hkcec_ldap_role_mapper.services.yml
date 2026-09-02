@@ -1,0 +1,20 @@
+services:
+  logger.channel.hkcec_ldap_role_mapper:
+    parent: logger.channel_base
+    arguments: ['hkcec_ldap_role_mapper']
+
+  hkcec_ldap_role_mapper.synchronizer:
+    class: Drupal\hkcec_ldap_role_mapper\Service\LdapRoleSynchronizer
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@ldap.group_manager'
+      - '@logger.channel.hkcec_ldap_role_mapper'
+
+  hkcec_ldap_role_mapper.login_subscriber:
+    class: Drupal\hkcec_ldap_role_mapper\EventSubscriber\LdapLoginRoleSyncSubscriber
+    arguments:
+      - '@hkcec_ldap_role_mapper.synchronizer'
+      - '@logger.channel.hkcec_ldap_role_mapper'
+    tags:
+      - { name: event_subscriber }

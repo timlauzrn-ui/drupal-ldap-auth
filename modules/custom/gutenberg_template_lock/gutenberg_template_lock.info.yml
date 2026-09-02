@@ -1,9 +1,0 @@
-name: 'Gutenberg Template Lock'
-type: module
-description: 'Enforces Gutenberg template lock "all" for non-admins; unlocks structure for users with the unlock permission.'
-package: Gutenberg
-core_version_requirement: '^10.3 || ^11'
-dependencies:
-  - gutenberg:gutenberg
-  - drupal:node
-  - drupal:user

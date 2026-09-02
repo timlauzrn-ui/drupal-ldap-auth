@@ -4,12 +4,12 @@ set -euo pipefail
 
 CONTAINER="${CONTAINER:-my-drupal}"
 
-docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en taxonomy media media_library media_directories department_access -y
+docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en taxonomy media media_library media_directories hkcec_department_access -y
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-\Drupal::service("department_access.role_ensurer")->ensureRoles();
-\Drupal::service("department_access.folder_sync")->sync();
-$resolver = \Drupal::service("department_access.resolver");
+\Drupal::service("hkcec_department_access.role_ensurer")->ensureRoles();
+\Drupal::service("hkcec_department_access.folder_sync")->sync();
+$resolver = \Drupal::service("hkcec_department_access.resolver");
 $depts = $resolver->getDepartments();
 foreach ($depts as $id => $d) {
   $tid = $resolver->getFolderTermIdForDepartment($id);

@@ -5,7 +5,7 @@ set -euo pipefail
 CONTAINER="${CONTAINER:-my-drupal}"
 
 echo "==> Module enabled"
-docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush pm:list --status=enabled --filter=fnb_revenue_report
+docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush pm:list --status=enabled --filter=hkcec_fnb_revenue_report
 
 echo "==> Roles + permissions"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
@@ -23,7 +23,7 @@ foreach (["fin_dev", "fnb_dev"] as $rid) {
 
 echo "==> LDAP mappings present"
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$maps = \Drupal::config("ldap_role_mapper.settings")->get("mappings") ?: [];
+$maps = \Drupal::config("hkcec_ldap_role_mapper.settings")->get("mappings") ?: [];
 $need = ["FIN_dev" => "fin_dev", "F&B_dev" => "fnb_dev"];
 foreach ($need as $g => $rid) {
   $ok = FALSE;
@@ -45,7 +45,7 @@ $path = $fs->realpath("private://fnb-revenue") . "/" . $date . ".pdf";
 if (!file_exists($path)) {
   file_put_contents($path, "%PDF-1.1\n%%EOF\n");
 }
-$scanner = \Drupal::service("fnb_revenue_report.drop_folder_scanner");
+$scanner = \Drupal::service("hkcec_fnb_revenue_report.drop_folder_scanner");
 $first = $scanner->scan();
 $second = $scanner->scan();
 if ($second["created"] !== 0) {
