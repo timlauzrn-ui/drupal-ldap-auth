@@ -1,6 +1,8 @@
 blocks:
-  version: 1.x
+  version: 1.4.0
   js:
+    js/editor-simple.js: {}
+    js/card-helpers.js: {}
     js/hero-block.js: {}
     js/ad-slider-block.js: {}
     js/marquee-block.js: {}
@@ -33,9 +35,18 @@ blocks:
     - gutenberg/block-editor
     - gutenberg/components
 
+editor:
+  version: 1.4.0
+  css:
+    theme:
+      css/gutenberg-editor.css: {}
+  dependencies:
+    - core/drupal
+
 frontend:
-  version: 1.x
+  version: 1.4.0
   js:
+    js/intranet-cards-frontend.js: {}
     js/ad-slider-frontend.js: {}
     js/accordion-frontend.js: {}
     js/countdown-frontend.js: {}

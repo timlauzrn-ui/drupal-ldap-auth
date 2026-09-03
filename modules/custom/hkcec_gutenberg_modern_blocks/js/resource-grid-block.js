@@ -15,11 +15,13 @@
   }
 
   function emptyCard() {
-    return {
-      icon: '📄',
-      title: '',
-      links: [emptyLink(), emptyLink(), emptyLink(), emptyLink()],
-    };
+    return window.hkcecEditor && window.hkcecEditor.emptyCard
+      ? window.hkcecEditor.emptyCard(true)
+      : {
+          icon: '📄',
+          title: '',
+          links: [emptyLink(), emptyLink(), emptyLink(), emptyLink()],
+        };
   }
 
   function Edit(props) {
@@ -81,26 +83,26 @@
         null,
         el(
           PanelBody,
-          { title: Drupal.t('Grid settings'), initialOpen: true },
+          { title: Drupal.t('Optional: how many boxes in a row'), initialOpen: false },
           el(SelectControl, {
-            label: Drupal.t('Columns'),
+            label: Drupal.t('Boxes side by side'),
             value: columns,
             options: [
-              { label: '4 (landing)', value: '4' },
-              { label: '3', value: '3' },
-              { label: '2 (department)', value: '2' },
-              { label: '1', value: '1' },
+              { label: Drupal.t('4 boxes (home page)'), value: '4' },
+              { label: Drupal.t('3 boxes'), value: '3' },
+              { label: Drupal.t('2 boxes'), value: '2' },
+              { label: Drupal.t('1 wide box'), value: '1' },
             ],
             onChange: function (v) {
               setAttributes({ columns: v });
             },
           }),
           el(SelectControl, {
-            label: Drupal.t('Link style'),
+            label: Drupal.t('List style (optional)'),
             value: linkStyle,
             options: [
-              { label: Drupal.t('Bullet (landing)'), value: 'bullet' },
-              { label: Drupal.t('Arrow (department)'), value: 'arrow' },
+              { label: Drupal.t('Dots'), value: 'bullet' },
+              { label: Drupal.t('Arrows'), value: 'arrow' },
             ],
             onChange: function (v) {
               setAttributes({ linkStyle: v });
@@ -111,52 +113,46 @@
       el(
         'div',
         blockProps,
-        el('div', { className: 'gb-modern__editor-label' }, Drupal.t('Resource / service cards')),
+        el('p', { className: 'gb-section-title' }, Drupal.t('Resource boxes')),
+        window.hkcecEditor && window.hkcecEditor.helpBox
+          ? window.hkcecEditor.helpBox(Drupal.t('Fill each box like Excel'), [
+            Drupal.t('Type a heading for the box. Click the heading on the live page to open or close the box.'),
+            Drupal.t('In the table, left column is the name people see. Right column is where the link goes.'),
+            Drupal.t('Need sections inside a box? Click “Add a group heading” (for example Hardware / Software).'),
+            Drupal.t('Need a second page for a topic? Open “Add a box on the topic page”. The shortcuts above the boxes will open that page.'),
+          ])
+          : null,
         cards.map(function (card, ci) {
+          if (window.hkcecEditor && window.hkcecEditor.cardEditor) {
+            return window.hkcecEditor.cardEditor(card, {
+              key: 'card-' + ci,
+              showIcon: true,
+              indexLabel: Drupal.t('Box @n', { '@n': ci + 1 }),
+              titlePlaceholder: Drupal.t('For example: Company Resources'),
+              onChange: function (next) {
+                updateCard(ci, next);
+              },
+              onRemove: function () {
+                removeCard(ci);
+              },
+            });
+          }
           return el(
             'div',
             { className: 'gb-resource-card gb-resource-card--editor', key: 'card-' + ci },
-            el('div', { className: 'gb-modern__row-tools' },
-              el('strong', null, Drupal.t('Card @n', { '@n': ci + 1 })),
-              el(Button, { isDestructive: true, isSmall: true, onClick: function () { removeCard(ci); } }, Drupal.t('Remove')),
-            ),
             el(TextControl, {
-              label: Drupal.t('Icon (emoji or short text)'),
-              value: card.icon || '',
-              onChange: function (v) { updateCard(ci, { icon: v }); },
-            }),
-            el(TextControl, {
-              label: Drupal.t('Title'),
+              label: Drupal.t('Box heading'),
               value: card.title || '',
               onChange: function (v) { updateCard(ci, { title: v }); },
             }),
-            (card.links || []).map(function (link, li) {
-              return el(
-                'div',
-                { className: 'gb-resource-card__link-row', key: 'link-' + ci + '-' + li },
-                el(TextControl, {
-                  label: Drupal.t('Link label'),
-                  value: link.label || '',
-                  onChange: function (v) { updateLink(ci, li, { label: v }); },
-                }),
-                el(TextControl, {
-                  label: Drupal.t('URL'),
-                  value: link.url || '',
-                  onChange: function (v) { updateLink(ci, li, { url: v }); },
-                  placeholder: '/path-or-https://',
-                }),
-                el(Button, { isSmall: true, isDestructive: true, onClick: function () { removeLink(ci, li); } }, Drupal.t('Remove link')),
-              );
-            }),
-            el(Button, { isSecondary: true, isSmall: true, onClick: function () { addLink(ci); } }, Drupal.t('Add link')),
           );
         }),
-        el(Button, { isPrimary: true, onClick: addCard }, Drupal.t('Add card')),
+        el(Button, { isPrimary: true, onClick: addCard }, Drupal.t('Add another box')),
       ),
     );
   }
 
-  function Save(props) {
+  function saveLegacy(props) {
     const a = props.attributes;
     const cards = a.cards || [];
     const columns = a.columns || '4';
@@ -210,6 +206,36 @@
     );
   }
 
+  function Save(props) {
+    const a = props.attributes;
+    const cards = a.cards || [];
+    const columns = a.columns || '4';
+    const linkStyle = a.linkStyle || 'bullet';
+    const marker = linkStyle === 'arrow' ? '→' : '•';
+    const helper = window.hkcecEditor || {};
+    const blockProps = useBlockProps.save({
+      className: 'gb-resource-grid cols-' + columns + ' links-' + linkStyle,
+    });
+    const shortcuts = helper.saveShortcutList ? helper.saveShortcutList(cards) : [];
+
+    return el(
+      'div',
+      blockProps,
+      shortcuts.length
+        ? el('nav', { className: 'gb-card-shortcuts', 'aria-label': 'Topics' }, el('ul', null, shortcuts))
+        : null,
+      el(
+        'div',
+        { className: 'gb-resource-grid__inner' },
+        helper.saveOneCard
+          ? cards.map(function (card, ci) {
+              return helper.saveOneCard(card, 'c-' + ci, marker, true);
+            })
+          : null,
+      ),
+    );
+  }
+
   registerBlockType('hkcec/resource-grid', {
     apiVersion: 2,
     title: Drupal.t('Resource / service cards'),
@@ -226,7 +252,21 @@
         default: [],
       },
     },
+    getEditWrapperProps: function () {
+      return { 'data-align': 'full' };
+    },
     edit: Edit,
     save: Save,
+    deprecated: [
+      {
+        attributes: {
+          columns: { type: 'string', default: '4' },
+          linkStyle: { type: 'string', default: 'bullet' },
+          cards: { type: 'array', default: [] },
+        },
+        supports: { align: ['wide', 'full'], anchor: true, html: false },
+        save: saveLegacy,
+      },
+    ],
   });
 })(window.wp, window.Drupal);

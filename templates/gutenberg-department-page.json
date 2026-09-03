@@ -5,6 +5,8 @@
   }],
   ["hkcec/dept-layout", {
     "navIcon": "📖",
+    "navIconImageUrl": "",
+    "navImages": [],
     "navTitle": "Quick Navigation",
     "navItems": [
       {"label": "Employee Services", "url": "#employee-services"},

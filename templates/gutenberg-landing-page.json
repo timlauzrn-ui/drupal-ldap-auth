@@ -1,6 +1,7 @@
 [
-  ["hkcec/ad-slider", {"autoplay": true, "interval": 5, "showDots": true, "showArrows": true, "slides": []}],
+  ["hkcec/ad-slider", {"align": "full", "autoplay": true, "interval": 5, "showDots": true, "showArrows": true, "slides": []}],
   ["hkcec/resource-grid", {
+    "align": "full",
     "columns": "4",
     "linkStyle": "bullet",
     "cards": [
@@ -46,5 +47,5 @@
       }
     ]
   }],
-  ["hkcec/hot-news", {"heading": "Hot News", "items": []}]
+  ["hkcec/hot-news", {"align": "full", "heading": "Hot News", "items": []}]
 ]

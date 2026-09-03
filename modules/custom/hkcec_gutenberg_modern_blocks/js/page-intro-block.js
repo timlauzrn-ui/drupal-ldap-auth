@@ -17,11 +17,16 @@
     return el(
       'header',
       blockProps,
-      el('div', { className: 'gb-modern__editor-label' }, Drupal.t('Page intro')),
+      window.hkcecEditor && window.hkcecEditor.helpBox
+        ? window.hkcecEditor.helpBox(Drupal.t('Department heading'), [
+          Drupal.t('Click the big title and type the department name (for example Human Resources).'),
+          Drupal.t('Click the line underneath and type one short sentence about this page.'),
+        ])
+        : null,
       el(RichText, {
         tagName: 'h1',
         className: 'gb-page-intro__title',
-        placeholder: Drupal.t('Department title'),
+        placeholder: Drupal.t('Type the department name here'),
         value: a.title || '',
         onChange: function (v) {
           setAttributes({ title: v });
@@ -30,7 +35,7 @@
       el(RichText, {
         tagName: 'p',
         className: 'gb-page-intro__subtitle',
-        placeholder: Drupal.t('Short supporting sentence'),
+        placeholder: Drupal.t('Type one short sentence here'),
         value: a.subtitle || '',
         onChange: function (v) {
           setAttributes({ subtitle: v });

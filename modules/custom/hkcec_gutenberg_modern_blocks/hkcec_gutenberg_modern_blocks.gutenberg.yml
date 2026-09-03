@@ -1,6 +1,7 @@
 # Libraries for the Gutenberg editor and frontend.
 libraries-edit:
   - hkcec_gutenberg_modern_blocks/blocks
+  - hkcec_gutenberg_modern_blocks/editor
 libraries-view:
   - hkcec_gutenberg_modern_blocks/blocks
   - hkcec_gutenberg_modern_blocks/frontend

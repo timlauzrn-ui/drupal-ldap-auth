@@ -1,0 +1,189 @@
+/**
+ * Gutenberg authoring canvas: WordPress defaults cap .wp-block at 840px.
+ * Landing page (and other node) editing should use the full editor width.
+ */
+
+.editor-styles-wrapper {
+  --wp--style--global--content-size: 100%;
+  --wp--style--global--wide-size: 100%;
+}
+
+.editor-styles-wrapper .block-editor-block-list__layout.is-root-container,
+.editor-styles-wrapper .is-root-container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Gutenberg classic.css: html :where(.wp-block) { max-width: 840px } */
+html :where(.wp-block),
+.wp-block,
+html :where(.editor-styles-wrapper) .block-editor-block-list__layout.is-root-container > .wp-block,
+html :where(.editor-styles-wrapper) .is-root-container > .wp-block,
+.editor-styles-wrapper .is-root-container > .block-editor-block-list__block.wp-block,
+.editor-styles-wrapper .wp-block[data-align="wide"],
+html :where(.wp-block)[data-align="wide"] {
+  max-width: none !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.edit-post-visual-editor,
+.edit-post-visual-editor__content-area,
+.interface-interface-skeleton__content,
+.block-editor-iframe__body,
+.editor-styles-wrapper {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.gb-ad-slider--editor,
+.gb-resource-grid--editor,
+.gb-hot-news--editor,
+.gb-dept-layout--editor,
+.gb-page-intro--editor {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Outer Drupal / Gin wrappers */
+.hkcec-gutenberg-fullwidth.gin--edit-form .region-content,
+.hkcec-gutenberg-fullwidth .gutenberg,
+.hkcec-gutenberg-fullwidth .gutenberg__editor,
+.hkcec-gutenberg-fullwidth .field--gutenberg,
+.gin--edit-form .gutenberg,
+.gin--edit-form .gutenberg__editor,
+.gin--edit-form .field--gutenberg,
+.gin--edit-form .node-form .gutenberg,
+.gin--edit-form.is-fullscreen-mode .region-content,
+.gin--edit-form.path-node .region-content,
+.gin--edit-form.page-node-type-page .region-content,
+.gin--edit-form.page-node-type-landing-page .region-content {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.gb-dept-layout.gb-dept-layout--editor {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+}
+
+.gb-dept-layout__editor-grid {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Word/Excel-style authoring chrome */
+.gb-page-help,
+.gb-help {
+  background: #fff8e1;
+  border: 1px solid #f0d78c;
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  margin: 0 0 1rem;
+  color: #3d3d3d;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  max-width: none;
+}
+
+.gb-help__title,
+.gb-page-help strong {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  color: #1e4b8c;
+}
+
+.gb-help__steps,
+.gb-page-help ol {
+  margin: 0.25rem 0 0 1.15rem;
+  padding: 0;
+}
+
+.gb-section-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #163a6e;
+}
+
+.gb-excel__head,
+.gb-excel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.gb-excel__head {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4b5563;
+  margin: 0.35rem 0 0.25rem;
+}
+
+.gb-excel__row {
+  margin-bottom: 0.35rem;
+}
+
+.gb-excel__row .components-base-control {
+  margin-bottom: 0;
+}
+
+.gb-excel__row .components-base-control__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.gb-help__mini {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 0.88rem;
+  color: #4b5563;
+}
+
+.gb-layout-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.gb-simple-upload .block-editor-media-placeholder {
+  min-height: 0;
+  padding: 0.75rem;
+}
+
+.gb-page-intro--editor .gb-page-intro__title {
+  min-height: 1.4em;
+}
+
+.gb-card-group {
+  margin: 0.65rem 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.gb-card-subpage {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  border: 1px solid #c5d4ea;
+  border-radius: 8px;
+  background: #eef4fb;
+}
+
+.gb-card-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: #374151;
+}

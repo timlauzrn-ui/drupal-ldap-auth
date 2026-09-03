@@ -83,16 +83,16 @@
         null,
         el(
           PanelBody,
-          { title: Drupal.t('Slider settings'), initialOpen: true },
+          { title: Drupal.t('Optional: how the banner plays'), initialOpen: false },
           el(ToggleControl, {
-            label: Drupal.t('Autoplay'),
+            label: Drupal.t('Play pictures automatically'),
             checked: !!autoplay,
             onChange: function (value) {
               setAttributes({ autoplay: value });
             },
           }),
           el(RangeControl, {
-            label: Drupal.t('Seconds per slide'),
+            label: Drupal.t('Seconds on each picture'),
             value: interval,
             onChange: function (value) {
               setAttributes({ interval: value || 5 });
@@ -124,7 +124,7 @@
           null,
           el(ToolbarButton, {
             icon: 'plus-alt',
-            label: Drupal.t('Add slide'),
+            label: Drupal.t('Add a picture'),
             onClick: addSlide,
           }),
         ),
@@ -132,12 +132,18 @@
       el(
         'div',
         blockProps,
-        el('div', { className: 'gb-ad-slider__editor-label' }, Drupal.t('Ad Slider')),
+        el('p', { className: 'gb-section-title' }, Drupal.t('Banner pictures')),
+        window.hkcecEditor && window.hkcecEditor.helpBox
+          ? window.hkcecEditor.helpBox(Drupal.t('Top of the home page'), [
+            Drupal.t('Click “Add a picture” and choose a photo. You can add several; they take turns.'),
+            Drupal.t('Words on the picture and a click-link are optional.'),
+          ])
+          : null,
         slides.length === 0
           ? el(
               'p',
               { className: 'gb-ad-slider__empty' },
-              Drupal.t('No slides yet. Click “Add slide” to upload ad images.'),
+              Drupal.t('No pictures yet. Click “Add a picture” below.'),
             )
           : null,
         slides.map(function (slide, index) {
@@ -147,7 +153,7 @@
             el(
               'div',
               { className: 'gb-ad-slider__slide-tools' },
-              el('strong', null, Drupal.t('Slide @n', { '@n': index + 1 })),
+              el('strong', null, Drupal.t('Picture @n', { '@n': index + 1 })),
               el(
                 Button,
                 {
@@ -195,9 +201,9 @@
                     },
                     allowedTypes: ['image'],
                     multiple: false,
-                    labels: { title: Drupal.t('Ad image') },
+                    labels: { title: Drupal.t('Click to add a photo') },
                   },
-                  Drupal.t('Upload or select an ad image.'),
+                  Drupal.t('Choose a photo from your computer.'),
                 )
               : el('img', {
                   src: slide.imageUrl,
@@ -208,26 +214,26 @@
             el(RichText, {
               tagName: 'h3',
               className: 'gb-ad-slider__title',
-              placeholder: Drupal.t('Ad title (optional)'),
+              placeholder: Drupal.t('Words on the picture (optional)'),
               value: slide.title || '',
               onChange: function (value) {
                 updateSlide(index, { title: value });
               },
             }),
             el(TextControl, {
-              label: Drupal.t('Link URL (optional)'),
+              label: Drupal.t('When clicked, go to (optional)'),
               value: slide.linkUrl || '',
               onChange: function (value) {
                 updateSlide(index, { linkUrl: value });
               },
-              placeholder: 'https://',
+              placeholder: Drupal.t('Paste a link, or leave empty'),
             }),
           );
         }),
         el(
           Button,
           { variant: 'primary', onClick: addSlide, className: 'gb-ad-slider__add' },
-          Drupal.t('Add slide'),
+          Drupal.t('Add a picture'),
         ),
       ),
     );
@@ -362,6 +368,9 @@
         type: 'boolean',
         default: true,
       },
+    },
+    getEditWrapperProps: function () {
+      return { 'data-align': 'full' };
     },
     edit: Edit,
     save: Save,

@@ -4,3 +4,92 @@
  * @file
  * Gutenberg Modern Blocks module file.
  */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeForm;
+
+/**
+ * Implements hook_page_attachments().
+ *
+ * Ensure editor-width CSS is on node add/edit even if Gutenberg iframe
+ * boot does not pick up gutenberg.yml libraries-edit.
+ */
+function hkcec_gutenberg_modern_blocks_page_attachments(array &$attachments): void {
+  $route = \Drupal::routeMatch()->getRouteName();
+  if (!is_string($route)) {
+    return;
+  }
+  $is_node_form = in_array($route, ['node.add', 'entity.node.edit_form'], TRUE)
+    || (str_starts_with($route, 'entity.node.') && str_contains($route, 'form'));
+  if (!$is_node_form) {
+    return;
+  }
+  $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/editor';
+  $attachments['#attached']['html_head'][] = [
+    [
+      '#tag' => 'style',
+      '#value' => 'html :where(.wp-block),.wp-block{max-width:none!important;width:100%!important;}.hkcec-gutenberg-fullwidth,.hkcec-gutenberg-fullwidth .gutenberg,.hkcec-gutenberg-fullwidth .gutenberg__editor,.hkcec-gutenberg-fullwidth .field--gutenberg,.hkcec-gutenberg-fullwidth .region-content,.gin--edit-form .gutenberg,.gin--edit-form .region-content{max-width:none!important;width:100%!important;}',
+    ],
+    'hkcec_gutenberg_fullwidth_head',
+  ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for html.html.twig.
+ */
+function hkcec_gutenberg_modern_blocks_preprocess_html(array &$variables): void {
+  $route = \Drupal::routeMatch()->getRouteName();
+  if (!is_string($route)) {
+    return;
+  }
+  $is_node_form = in_array($route, ['node.add', 'entity.node.edit_form'], TRUE)
+    || (str_starts_with($route, 'entity.node.') && str_contains($route, 'form'));
+  if ($is_node_form) {
+    $variables['attributes']['class'][] = 'hkcec-gutenberg-fullwidth';
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $form['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/editor';
+  $form['#attributes']['class'][] = 'hkcec-gutenberg-fullwidth';
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof NodeForm) {
+    return;
+  }
+  $bundle = $form_object->getEntity()->bundle();
+  $landing_types = ['page', 'landing_page', 'landing_page_test'];
+  if ($bundle !== 'department_page' && !in_array($bundle, $landing_types, TRUE)) {
+    return;
+  }
+
+  if ($bundle === 'department_page') {
+    $markup = '<div class="gb-page-help"><strong>' . t('How to fill this page (like Word / Excel)') . '</strong><ol>'
+      . '<li>' . t('At the top, type the department name and one short sentence. Click the example words and type over them.') . '</li>'
+      . '<li>' . t('On the left, extra menu lines are optional. Shortcuts for each box heading are added automatically.') . '</li>'
+      . '<li>' . t('On the right, each box is a topic. Type the heading, then add lines in Name | Where it goes. Click a title on the live page to open or close the box.') . '</li>'
+      . '<li>' . t('Need groups inside a box (for example Hardware / Software)? Click “Add a group heading”.') . '</li>'
+      . '<li>' . t('Need a second page for a topic? Use “Add a box on the topic page”. The menu shortcut opens a page that looks like this one, with only that topic’s boxes.') . '</li>'
+      . '<li>' . t('Need more boxes? Click “Add another box”. Need a new line of boxes? Click “Add another row of boxes” and pick 1, 2, or 3 boxes.') . '</li>'
+      . '<li>' . t('Pictures are optional. Click “Add a picture” only if you have one. Then click Save at the top.') . '</li>'
+      . '</ol></div>';
+  }
+  else {
+    $markup = '<div class="gb-page-help"><strong>' . t('How to fill this home page (like Word / Excel)') . '</strong><ol>'
+      . '<li>' . t('Banner pictures: click “Add a picture”, choose a photo from your computer, then type optional words and a link.') . '</li>'
+      . '<li>' . t('Resource boxes: type a heading, then fill Name | Where it goes. Click the heading on the live page to open or close the box.') . '</li>'
+      . '<li>' . t('Need groups inside a box? Click “Add a group heading”. Need a second page for a topic? Use “Add a box on the topic page”.') . '</li>'
+      . '<li>' . t('Hot News: add a photo, a short headline, and (optional) where it should open when clicked.') . '</li>'
+      . '<li>' . t('You do not need HTML. Click example text and type over it. Then click Save at the top.') . '</li>'
+      . '</ol></div>';
+  }
+
+  $form['hkcec_simple_help'] = [
+    '#type' => 'markup',
+    '#markup' => $markup,
+    '#weight' => -50,
+  ];
+}

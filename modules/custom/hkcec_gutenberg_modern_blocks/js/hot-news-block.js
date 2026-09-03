@@ -40,11 +40,17 @@
       el(
         'section',
         blockProps,
-        el('div', { className: 'gb-modern__editor-label' }, Drupal.t('Hot News')),
+        el('p', { className: 'gb-section-title' }, Drupal.t('Hot News')),
+        window.hkcecEditor && window.hkcecEditor.helpBox
+          ? window.hkcecEditor.helpBox(Drupal.t('News photos'), [
+            Drupal.t('Click to add a photo, then type a short headline.'),
+            Drupal.t('If the news should open a page, paste that link. If not, leave it empty.'),
+          ])
+          : null,
         el(RichText, {
           tagName: 'h2',
           className: 'gb-hot-news__heading',
-          placeholder: Drupal.t('Hot News'),
+          placeholder: Drupal.t('Type a heading, for example Hot News'),
           value: a.heading || '',
           onChange: function (v) {
             setAttributes({ heading: v });
@@ -58,7 +64,7 @@
               'div',
               { className: 'gb-hot-news__card gb-hot-news__card--editor', key: 'hn-' + i },
               el('div', { className: 'gb-modern__row-tools' },
-                el('strong', null, Drupal.t('Story @n', { '@n': i + 1 })),
+                el('strong', null, Drupal.t('News @n', { '@n': i + 1 })),
                 el(Button, {
                   isDestructive: true,
                   isSmall: true,
@@ -69,10 +75,10 @@
                       }),
                     });
                   },
-                }, Drupal.t('Remove')),
+                }, Drupal.t('Delete this news')),
               ),
               !item.imageUrl
-                ? el(MediaPlaceholder, {
+                ? el('div', { className: 'gb-simple-upload' }, el(MediaPlaceholder, {
                     onSelect: function (media) {
                       updateItem(i, {
                         imageUrl: media.url || '',
@@ -82,8 +88,8 @@
                     },
                     allowedTypes: ['image'],
                     multiple: false,
-                    labels: { title: Drupal.t('News image') },
-                  }, Drupal.t('Upload or select an image.'))
+                    labels: { title: Drupal.t('Click to add a photo') },
+                  }, Drupal.t('Choose a photo from your computer.')))
                 : el(
                     Fragment,
                     null,
@@ -101,19 +107,20 @@
                     }, Drupal.t('Clear image')),
                   ),
               el(TextControl, {
-                label: Drupal.t('Title (optional)'),
+                label: Drupal.t('Headline'),
                 value: item.title || '',
                 onChange: function (v) {
                   updateItem(i, { title: v });
                 },
+                placeholder: Drupal.t('Short news title'),
               }),
               el(TextControl, {
-                label: Drupal.t('Link URL'),
+                label: Drupal.t('When clicked, go to (optional)'),
                 value: item.url || '',
                 onChange: function (v) {
                   updateItem(i, { url: v });
                 },
-                placeholder: '/news/...',
+                placeholder: Drupal.t('Paste a link, or leave empty'),
               }),
             );
           }),
@@ -123,7 +130,7 @@
           onClick: function () {
             setAttributes({ items: items.concat([emptyItem()]) });
           },
-        }, Drupal.t('Add news card')),
+          }, Drupal.t('Add another news photo')),
       ),
     );
   }
@@ -181,6 +188,9 @@
     attributes: {
       heading: { type: 'string', default: 'Hot News' },
       items: { type: 'array', default: [] },
+    },
+    getEditWrapperProps: function () {
+      return { 'data-align': 'full' };
     },
     edit: Edit,
     save: Save,
