@@ -42,9 +42,14 @@ $modern = [
 ];
 
 $allowed = array_values(array_unique(array_merge($modern, [
+  "core/block",
+  "core/pattern",
+  "core/missing",
+  "core/freeform",
   "core/paragraph",
   "core/heading",
   "core/list",
+  "core/list-item",
   "core/image",
   "core/gallery",
   "core/file",

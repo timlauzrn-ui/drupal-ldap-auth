@@ -1,7 +1,8 @@
 blocks:
-  version: 1.4.0
+  version: 1.6.4
   js:
     js/editor-simple.js: {}
+    js/media-friendly.js: {}
     js/card-helpers.js: {}
     js/hero-block.js: {}
     js/ad-slider-block.js: {}
@@ -29,6 +30,7 @@ blocks:
       css/intranet-templates.css: {}
   dependencies:
     - core/drupal
+    - core/once
     - gutenberg/react
     - gutenberg/element
     - gutenberg/blocks
@@ -36,15 +38,18 @@ blocks:
     - gutenberg/components
 
 editor:
-  version: 1.4.0
+  version: 1.6.4
+  js:
+    js/editor-patterns.js: {}
   css:
     theme:
       css/gutenberg-editor.css: {}
+      css/intranet-templates.css: {}
   dependencies:
     - core/drupal
 
 frontend:
-  version: 1.4.0
+  version: 1.6.4
   js:
     js/intranet-cards-frontend.js: {}
     js/ad-slider-frontend.js: {}

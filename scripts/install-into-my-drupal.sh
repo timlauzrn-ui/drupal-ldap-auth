@@ -63,7 +63,8 @@ if [[ -d "${PATCHES_DIR}" ]]; then
   GUTENBERG_DIR="/opt/drupal/web/modules/contrib/gutenberg"
   for patch in \
     gutenberg-drupal-114-route-methods.patch \
-    gutenberg-php85-nullable-and-empty-field-guard.patch
+    gutenberg-php85-nullable-and-empty-field-guard.patch \
+    gutenberg-allowed-drupal-blocks-null-guard.patch
   do
     if [[ -f "${PATCHES_DIR}/${patch}" ]]; then
       docker cp "${PATCHES_DIR}/${patch}" "${CONTAINER}:/tmp/${patch}"
@@ -128,6 +129,10 @@ echo "==> Configuring intranet landing + department Gutenberg templates..."
 chmod +x "${SCRIPT_DIR}/configure-intranet-templates.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-intranet-templates.sh"
 
+echo "==> Configuring Department page (test) with Gutenberg origin blocks..."
+chmod +x "${SCRIPT_DIR}/configure-department-page-test.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-department-page-test.sh"
+
 echo "==> Configuring Bootstrap5 (front) + Gin (admin) themes..."
 chmod +x "${SCRIPT_DIR}/configure-themes.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-themes.sh"
@@ -143,6 +148,10 @@ CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-department-media.sh"
 echo "==> Configuring friendly navigation, aliases, private media..."
 chmod +x "${SCRIPT_DIR}/configure-friendly-nav.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-friendly-nav.sh"
+
+echo "==> Parent department field for child Basic pages..."
+chmod +x "${SCRIPT_DIR}/configure-parent-department.sh"
+CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-parent-department.sh"
 
 echo "==> Configuring Log Center..."
 chmod +x "${SCRIPT_DIR}/configure-log-center.sh"

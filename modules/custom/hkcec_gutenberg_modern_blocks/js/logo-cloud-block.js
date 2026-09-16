@@ -65,7 +65,9 @@
                     },
                     allowedTypes: ['image'],
                     multiple: false,
-                    labels: { title: Drupal.t('Logo') },
+                    labels: (window.hkcecMediaUi && window.hkcecMediaUi.labels)
+                      ? window.hkcecMediaUi.labels(Drupal.t('Drag a logo here, or click to choose'))
+                      : { title: Drupal.t('Drag a logo here, or click to choose') },
                   })
                 : el('img', {
                     src: logo.imageUrl,

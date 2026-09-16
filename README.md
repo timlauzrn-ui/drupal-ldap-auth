@@ -138,17 +138,30 @@ Matches the HKCEC Intranet Figma Make designs:
 |--------|--------------|------------|
 | Landing (hero slider + 4 resource cards + Hot News) | Basic page | `/node/add/page` |
 | Department / HR (intro + quick nav + service cards) | Department page | `/node/add/department_page` |
+| Department (origin Gutenberg blocks only) | Department page (test) | `/node/add/department_page_test` |
 
 ```bash
 CONTAINER=my-drupal ./scripts/configure-intranet-templates.sh
+CONTAINER=my-drupal ./scripts/configure-department-page-test.sh
 ```
 
 Pasteable template JSON (also applied by the script):
 
 - `templates/gutenberg-landing-page.json`
 - `templates/gutenberg-department-page.json`
+- `templates/gutenberg-department-page-test.json` / `.html` — Gutenberg **Columns** layout matching a Department page: left Quick Navigation, right resource cards (1-column row, then 2-column row, then 1-column row). Template lock is off.
 
 **Note:** The dark blue top bar (HKCEC Intranet / Human Resources / Finance / MIS / Others) is the **theme Main menu**, not Gutenberg. Edit under Structure → Menus → Main navigation. Breadcrumbs come from Easy Breadcrumb when enabled.
+
+### Parent / second-layer navigation
+
+- On a **Department page overview**, Quick Navigation does **not** show a back link.
+- On a **child topic view** (`?section=…`), the sidebar shows **← Back to {department}**, and the topic content also has a back link.
+- For a **separate Basic page** under a department: set **Parent department** — visitors get **← Back to {department}** in the content (and breadcrumbs `Home → Department → Page`).
+
+```bash
+CONTAINER=my-drupal ./scripts/configure-parent-department.sh
+```
 
 New blocks for these templates: Resource / service cards, Hot News, Page intro, Quick Navigation, Department layout.
 

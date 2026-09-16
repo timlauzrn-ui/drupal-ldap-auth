@@ -221,8 +221,12 @@
                   },
                   allowedTypes: ['image'],
                   multiple: false,
-                  labels: { title: Drupal.t('Click to add a photo') },
-                }, Drupal.t('Choose a photo from your computer.'))),
+                  labels: (window.hkcecMediaUi && window.hkcecMediaUi.labels)
+                    ? window.hkcecMediaUi.labels(Drupal.t('Drag a photo here, or click to choose'))
+                    : { title: Drupal.t('Drag a photo here, or click to choose') },
+                }, (window.hkcecMediaUi && window.hkcecMediaUi.hint)
+                  ? window.hkcecMediaUi.hint()
+                  : Drupal.t('Tip: drag and drop a photo here, or click to choose.'))),
                 el(TextControl, {
                   label: Drupal.t('Or paste a picture address'),
                   value: item.imageUrl || '',
@@ -608,7 +612,33 @@
       });
 
     function renderCard(card, key) {
-      return helper.saveOneCard ? helper.saveOneCard(card, key, marker, true) : null;
+      if (helper.saveOneCard) {
+        return helper.saveOneCard(card, key, marker, true);
+      }
+      if (!card || !card.title) {
+        return null;
+      }
+      return el(
+        'article',
+        { className: 'gb-resource-card', key: key },
+        el('h3', { className: 'gb-resource-card__title' }, card.title),
+        el(
+          'ul',
+          { className: 'gb-resource-card__links' },
+          (card.links || [])
+            .filter(function (link) {
+              return link && link.label;
+            })
+            .map(function (link, li) {
+              return el(
+                'li',
+                { key: key + '-l-' + li },
+                el('span', { className: 'gb-resource-card__marker', 'aria-hidden': 'true' }, marker),
+                link.url ? el('a', { href: link.url }, link.label) : el('span', null, link.label),
+              );
+            }),
+        ),
+      );
     }
 
     const cardsEl = usesCardRows(a)
@@ -649,7 +679,30 @@
         autoTitles[card.title] = true;
       }
     });
-    const autoItems = helper.saveShortcutList ? helper.saveShortcutList(allLayoutCards(a)) : [];
+    const autoItems = helper.saveShortcutList
+      ? helper.saveShortcutList(allLayoutCards(a), { includeParentBack: true })
+      : (function () {
+          const back = el(
+            'li',
+            { key: 'parent-back', className: 'gb-quick-nav__back', hidden: true },
+            el('a', { className: 'gb-quick-nav__back-link', href: './', 'data-parent-back': '1' }, '← Back to department'),
+          );
+          const autos = allLayoutCards(a)
+            .filter(function (card) {
+              return card && card.title;
+            })
+            .map(function (card, i) {
+              const slug = helper.slugify
+                ? helper.slugify(card.title)
+                : String(card.title || 'topic').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'topic';
+              return el(
+                'li',
+                { key: 'auto-' + slug + '-' + i, className: 'gb-quick-nav__auto' },
+                el('a', { href: '?section=' + slug, 'data-topic-link': slug }, card.title),
+              );
+            });
+          return [back].concat(autos);
+        })();
     const extraItems = navItems
       .filter(function (item) {
         return item && item.label && !autoTitles[item.label];

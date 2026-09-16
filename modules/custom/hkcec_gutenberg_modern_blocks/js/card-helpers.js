@@ -155,7 +155,11 @@
             hidden: true,
           },
           el('p', { className: 'gb-topic-page__back' },
-            el('a', { className: 'gb-topic-page__back-link', href: '?' }, '← All topics'),
+            el('a', {
+              className: 'gb-topic-page__back-link',
+              href: './',
+              'data-parent-back': '1',
+            }, '← Back to department'),
           ),
           el('h2', { className: 'gb-topic-page__title' }, card.title),
           el(
@@ -183,12 +187,28 @@
     );
   }
 
-  function saveShortcutList(cards) {
+  function saveParentBackItem() {
+    // Saved into markup but hidden on the parent overview by frontend JS.
+    // Shown only on child topic views (?section=…).
+    return el(
+      'li',
+      { key: 'parent-back', className: 'gb-quick-nav__back', hidden: true },
+      el(
+        'a',
+        {
+          className: 'gb-quick-nav__back-link',
+          href: './',
+          'data-parent-back': '1',
+        },
+        '← Back to department',
+      ),
+    );
+  }
+
+  function saveShortcutList(cards, options) {
+    const opts = options || {};
     const items = uniqueCards(cards);
-    if (!items.length) {
-      return [];
-    }
-    return items.map(function (card, i) {
+    const shortcuts = items.map(function (card, i) {
       const slug = slugify(card.title);
       return el(
         'li',
@@ -196,6 +216,12 @@
         el('a', { href: '?section=' + slug, 'data-topic-link': slug }, card.title),
       );
     });
+    // Parent-back belongs on department sidebars only. Putting it in landing
+    // resource-card markup makes Gutenberg mark existing cards as invalid.
+    if (opts.includeParentBack) {
+      return [saveParentBackItem()].concat(shortcuts);
+    }
+    return shortcuts;
   }
 
   function cardEditor(card, opts) {
@@ -388,7 +414,7 @@
     );
   }
 
-  window.hkcecEditor = Object.assign(E, {
+  window.hkcecEditor = Object.assign(window.hkcecEditor || E, {
     emptyLink: emptyLink,
     emptyGroup: emptyGroup,
     emptyCard: emptyCard,
@@ -396,6 +422,7 @@
     groupsOf: groupsOf,
     uniqueCards: uniqueCards,
     saveOneCard: saveOneCard,
+    saveParentBackItem: saveParentBackItem,
     saveShortcutList: saveShortcutList,
     cardEditor: cardEditor,
   });

@@ -216,7 +216,43 @@
     const blockProps = useBlockProps.save({
       className: 'gb-resource-grid cols-' + columns + ' links-' + linkStyle,
     });
-    const shortcuts = helper.saveShortcutList ? helper.saveShortcutList(cards) : [];
+    const shortcuts = helper.saveShortcutList
+      ? helper.saveShortcutList(cards, { includeParentBack: false })
+      : [];
+    const cardEls = cards.map(function (card, ci) {
+      if (helper.saveOneCard) {
+        return helper.saveOneCard(card, 'c-' + ci, marker, true);
+      }
+      if (!card || (!card.title && !(card.links || []).length)) {
+        return null;
+      }
+      return el(
+        'article',
+        { className: 'gb-resource-card', key: 'c-' + ci },
+        el(
+          'div',
+          { className: 'gb-resource-card__head' },
+          card.icon ? el('span', { className: 'gb-resource-card__icon', 'aria-hidden': 'true' }, card.icon) : null,
+          card.title ? el('h3', { className: 'gb-resource-card__title' }, card.title) : null,
+        ),
+        el(
+          'ul',
+          { className: 'gb-resource-card__links' },
+          (card.links || [])
+            .filter(function (link) {
+              return link && link.label;
+            })
+            .map(function (link, li) {
+              return el(
+                'li',
+                { key: 'l-' + ci + '-' + li },
+                el('span', { className: 'gb-resource-card__marker', 'aria-hidden': 'true' }, marker),
+                link.url ? el('a', { href: link.url }, link.label) : el('span', null, link.label),
+              );
+            }),
+        ),
+      );
+    });
 
     return el(
       'div',
@@ -227,11 +263,7 @@
       el(
         'div',
         { className: 'gb-resource-grid__inner' },
-        helper.saveOneCard
-          ? cards.map(function (card, ci) {
-              return helper.saveOneCard(card, 'c-' + ci, marker, true);
-            })
-          : null,
+        cardEls,
       ),
     );
   }
@@ -266,6 +298,49 @@
         },
         supports: { align: ['wide', 'full'], anchor: true, html: false },
         save: saveLegacy,
+      },
+      {
+        attributes: {
+          columns: { type: 'string', default: '4' },
+          linkStyle: { type: 'string', default: 'bullet' },
+          cards: { type: 'array', default: [] },
+        },
+        supports: { align: ['wide', 'full'], anchor: true, html: false },
+        save: function (props) {
+          // Matches markup saved while shortcuts always prepended a hidden back link.
+          const helper = window.hkcecEditor || {};
+          if (!helper.saveShortcutList || !helper.saveOneCard) {
+            return saveLegacy(props);
+          }
+          const a = props.attributes;
+          const cards = a.cards || [];
+          const columns = a.columns || '4';
+          const linkStyle = a.linkStyle || 'bullet';
+          const marker = linkStyle === 'arrow' ? '→' : '•';
+          const blockProps = useBlockProps.save({
+            className: 'gb-resource-grid cols-' + columns + ' links-' + linkStyle,
+          });
+          const back = helper.saveParentBackItem
+            ? helper.saveParentBackItem()
+            : el(
+                'li',
+                { key: 'parent-back', className: 'gb-quick-nav__back', hidden: true },
+                el('a', { className: 'gb-quick-nav__back-link', href: './', 'data-parent-back': '1' }, '← Back to department'),
+              );
+          const shortcuts = [back].concat(helper.saveShortcutList(cards, { includeParentBack: false }));
+          return el(
+            'div',
+            blockProps,
+            el('nav', { className: 'gb-card-shortcuts', 'aria-label': 'Topics' }, el('ul', null, shortcuts)),
+            el(
+              'div',
+              { className: 'gb-resource-grid__inner' },
+              cards.map(function (card, ci) {
+                return helper.saveOneCard(card, 'c-' + ci, marker, true);
+              }),
+            ),
+          );
+        },
       },
     ],
   });

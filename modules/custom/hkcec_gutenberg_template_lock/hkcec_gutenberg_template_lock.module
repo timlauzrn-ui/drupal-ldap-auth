@@ -9,6 +9,49 @@ declare(strict_types=1);
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
+use Drupal\node\NodeTypeInterface;
+
+/**
+ * Gutenberg template lock for the current node bundle.
+ *
+ * @return mixed
+ *   FALSE when unlocked, or a Gutenberg lock string (all/insert/contentOnly).
+ */
+function hkcec_gutenberg_template_lock_value_for_bundle(?string $bundle, bool $can_unlock) {
+  if ($can_unlock) {
+    return FALSE;
+  }
+  if (!$bundle) {
+    return 'all';
+  }
+  $lock = \Drupal::config('gutenberg.settings')->get($bundle . '_template_lock');
+  if (!is_string($lock) || $lock === '' || strtolower($lock) === 'none' || $lock === '0') {
+    return FALSE;
+  }
+  if ($lock === 'All') {
+    return 'all';
+  }
+  return $lock;
+}
+
+/**
+ * Current node bundle on add/edit routes, if any.
+ */
+function hkcec_gutenberg_template_lock_current_bundle(): ?string {
+  $route = \Drupal::routeMatch();
+  $node = $route->getParameter('node');
+  if ($node instanceof NodeInterface) {
+    return $node->bundle();
+  }
+  $type = $route->getParameter('node_type');
+  if ($type instanceof NodeTypeInterface) {
+    return $type->id();
+  }
+  if (is_string($type) && $type !== '') {
+    return $type;
+  }
+  return NULL;
+}
 
 /**
  * Implements hook_page_attachments().
@@ -28,12 +71,33 @@ function hkcec_gutenberg_template_lock_page_attachments(array &$attachments): vo
   $can_unlock = $account->hasPermission('unlock gutenberg template')
     || $account->hasPermission('administer nodes')
     || (int) $account->id() === 1;
+  $lock = hkcec_gutenberg_template_lock_value_for_bundle(
+    hkcec_gutenberg_template_lock_current_bundle(),
+    $can_unlock
+  );
 
   $attachments['#attached']['library'][] = 'hkcec_gutenberg_template_lock/hkcec_gutenberg_template_lock';
   $attachments['#attached']['drupalSettings']['hkcec_gutenberg_template_lock'] = [
-    'templateLock' => $can_unlock ? FALSE : 'all',
+    'templateLock' => $lock,
     'canUnlock' => $can_unlock,
   ];
+  // Gutenberg.js reads this hyphenated key at boot. Admins must not stay locked
+  // or the inserter (including Patterns) stays empty.
+  $attachments['#attached']['drupalSettings']['gutenberg']['template-lock'] = ($lock === FALSE) ? 'none' : $lock;
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * Gutenberg sets template-lock from config after our hook_page_attachments().
+ * Re-apply the role-aware value so the inserter/Patterns can load for unlockers.
+ */
+function hkcec_gutenberg_template_lock_page_attachments_alter(array &$attachments): void {
+  if (empty($attachments['#attached']['drupalSettings']['hkcec_gutenberg_template_lock'])) {
+    return;
+  }
+  $lock = $attachments['#attached']['drupalSettings']['hkcec_gutenberg_template_lock']['templateLock'];
+  $attachments['#attached']['drupalSettings']['gutenberg']['template-lock'] = ($lock === FALSE) ? 'none' : $lock;
 }
 
 /**
@@ -45,19 +109,23 @@ function hkcec_gutenberg_template_lock_form_node_form_alter(array &$form, FormSt
     || $account->hasPermission('administer nodes')
     || (int) $account->id() === 1;
 
+  $bundle = NULL;
+  $form_object = $form_state->getFormObject();
+  if (method_exists($form_object, 'getEntity')) {
+    $entity = $form_object->getEntity();
+    if ($entity instanceof NodeInterface) {
+      $bundle = $entity->bundle();
+    }
+  }
+  $lock = hkcec_gutenberg_template_lock_value_for_bundle($bundle, $can_unlock);
+
   $form['#attached']['library'][] = 'hkcec_gutenberg_template_lock/hkcec_gutenberg_template_lock';
   $form['#attached']['drupalSettings']['hkcec_gutenberg_template_lock'] = [
-    'templateLock' => $can_unlock ? FALSE : 'all',
+    'templateLock' => $lock,
     'canUnlock' => $can_unlock,
   ];
-
-  // Force locked template in Drupal settings that Gutenberg reads at boot.
-  if (!$can_unlock) {
-    $form['#attached']['drupalSettings']['gutenberg']['templateLock'] = 'all';
-  }
-  else {
-    $form['#attached']['drupalSettings']['gutenberg']['templateLock'] = FALSE;
-  }
+  $form['#attached']['drupalSettings']['gutenberg']['template-lock'] = ($lock === FALSE) ? 'none' : $lock;
+  $form['#attached']['drupalSettings']['gutenberg']['templateLock'] = $lock;
 
   $form['#validate'][] = 'hkcec_gutenberg_template_lock_node_form_validate';
 }

@@ -81,9 +81,13 @@
                 },
                 allowedTypes: ['image'],
                 multiple: false,
-                labels: { title: Drupal.t('Card image') },
+                labels: (window.hkcecMediaUi && window.hkcecMediaUi.labels)
+                  ? window.hkcecMediaUi.labels(Drupal.t('Drag a card photo here, or click to choose'))
+                  : { title: Drupal.t('Drag a card photo here, or click to choose') },
               },
-              Drupal.t('Upload or select an image.'),
+              (window.hkcecMediaUi && window.hkcecMediaUi.hint)
+                ? window.hkcecMediaUi.hint()
+                : Drupal.t('Tip: drag and drop a photo here, or click to choose.'),
             )
           : el('img', {
               src: a.imageUrl,

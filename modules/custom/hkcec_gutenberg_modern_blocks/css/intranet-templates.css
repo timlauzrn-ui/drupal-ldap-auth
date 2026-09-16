@@ -221,6 +221,61 @@
   font-weight: 800;
 }
 
+.gb-quick-nav__back[hidden],
+.gb-quick-nav__back.is-hidden,
+.gb-dept-layout:not(.is-section-view) > .gb-quick-nav .gb-quick-nav__back {
+  display: none !important;
+}
+
+.gb-quick-nav__back {
+  margin: 0 0 0.75rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid var(--intranet-border);
+  list-style: none;
+}
+
+.gb-quick-nav__back-link,
+.gb-quick-nav__back > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--intranet-blue) !important;
+  font-weight: 800 !important;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.gb-quick-nav__back-link:hover,
+.gb-quick-nav__back-link:focus,
+.gb-quick-nav__back > a:hover,
+.gb-quick-nav__back > a:focus {
+  text-decoration: underline;
+}
+
+.gb-quick-nav__back.is-section-active .gb-quick-nav__back-link,
+.gb-quick-nav__back.is-section-active > a {
+  color: var(--intranet-blue-deep) !important;
+}
+
+.gb-parent-back {
+  margin: 0 0 1rem;
+}
+
+.gb-parent-back__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--intranet-blue);
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.gb-parent-back__link:hover,
+.gb-parent-back__link:focus {
+  text-decoration: underline;
+}
+
 .gb-topic-page {
   margin-top: 0.5rem;
 }
@@ -233,6 +288,11 @@
   color: var(--intranet-blue);
   font-weight: 700;
   text-decoration: none;
+}
+
+.gb-topic-page__back-link:hover,
+.gb-topic-page__back-link:focus {
+  text-decoration: underline;
 }
 
 .gb-topic-page__title {
@@ -527,8 +587,201 @@
 
 /* Theme nudge: keep content wide for intranet templates (Bootstrap5) */
 .page-node-type-page .region-content,
-.page-node-type-department_page .region-content {
+.page-node-type-department_page .region-content,
+.page-node-type-department_page_test .region-content {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* —— Origin Gutenberg department layout (columns + resource cards) —— */
+.hkcec-dept-title,
+h1.hkcec-dept-title,
+.page-node-type-department_page_test .region-content h1.wp-block-heading:first-child {
+  margin: 0 0 1.1rem;
+  color: var(--intranet-blue);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.page-node-type-department_page_test .hkcec-dept-shell.wp-block-columns,
+.hkcec-dept-shell.wp-block-columns,
+.wp-block-columns.hkcec-dept-shell {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) !important;
+  gap: 1.5rem !important;
+  align-items: stretch !important;
+  margin: 0.5rem 0 2rem;
+}
+
+.hkcec-dept-shell.wp-block-columns > .wp-block-column,
+.wp-block-columns.hkcec-dept-shell > .wp-block-column {
+  margin: 0 !important;
+  flex-basis: auto !important;
+  width: auto !important;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+@media (max-width: 800px) {
+  .hkcec-dept-shell.wp-block-columns,
+  .wp-block-columns.hkcec-dept-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hkcec-dept-nav {
+  background: var(--intranet-sidebar-bg);
+  border-radius: var(--intranet-radius);
+  padding: 1.15rem 1.05rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 100%;
+  height: 100%;
+  align-self: stretch;
+}
+
+.hkcec-dept-nav .wp-block-heading,
+.hkcec-dept-nav h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--intranet-text);
+}
+
+.hkcec-dept-nav ul,
+.hkcec-dept-nav .wp-block-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hkcec-dept-nav li {
+  margin: 0.55rem 0;
+  font-size: 0.95rem;
+  color: var(--intranet-text);
+}
+
+.hkcec-dept-nav a {
+  color: var(--intranet-text);
+  text-decoration: none;
+}
+
+.hkcec-dept-nav a:hover,
+.hkcec-dept-nav a:focus {
+  color: var(--intranet-blue);
+  text-decoration: underline;
+}
+
+.hkcec-dept-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hkcec-origin-cards-2.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-2 {
+  gap: 1.25rem;
+  margin: 0;
+  align-items: stretch;
+}
+
+.hkcec-origin-card,
+.wp-block-group.hkcec-origin-card {
+  background: var(--intranet-card-bg);
+  border: 1px solid var(--intranet-border);
+  border-radius: var(--intranet-radius);
+  box-shadow: var(--intranet-shadow);
+  padding: 1.25rem 1.35rem 1.1rem;
+  margin: 0;
+}
+
+.hkcec-origin-card > .wp-block-heading,
+.hkcec-origin-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--intranet-blue);
+}
+
+.hkcec-origin-card ul,
+.hkcec-origin-card .wp-block-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hkcec-origin-card li {
+  position: relative;
+  margin: 0.4rem 0;
+  padding-left: 1.15rem;
+  color: var(--intranet-text);
+  font-size: 0.95rem;
+}
+
+.hkcec-origin-card li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--intranet-blue);
+}
+
+.hkcec-origin-card a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hkcec-origin-card a:hover,
+.hkcec-origin-card a:focus {
+  color: var(--intranet-blue);
+  text-decoration: underline;
+}
+
+/* Group + heading + Details: same card, expandable sections. */
+.hkcec-origin-card .wp-block-details {
+  margin: 0;
+}
+
+.hkcec-origin-card .wp-block-details + .wp-block-details {
+  border-top: 1px solid var(--intranet-border);
+  margin-top: 0.15rem;
+}
+
+.hkcec-origin-card .wp-block-details > summary {
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  margin: 0;
+  padding: 0.55rem 0 0.55rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--intranet-text);
+}
+
+.hkcec-origin-card .wp-block-details > summary::-webkit-details-marker,
+.hkcec-origin-card .wp-block-details > summary::marker {
+  display: none;
+  content: '';
+}
+
+.hkcec-origin-card .wp-block-details > summary::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--intranet-blue);
+}
+
+.hkcec-origin-card .wp-block-details[open] > summary::before {
+  content: '▾';
+}
+
+.hkcec-origin-card .wp-block-details > .wp-block-list,
+.hkcec-origin-card .wp-block-details > ul,
+.hkcec-origin-card .wp-block-details > p {
+  margin: 0 0 0.45rem;
 }

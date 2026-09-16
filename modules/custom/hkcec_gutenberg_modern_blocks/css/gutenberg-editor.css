@@ -154,9 +154,56 @@ html :where(.wp-block)[data-align="wide"] {
   margin: 0.25rem 0 0.75rem;
 }
 
-.gb-simple-upload .block-editor-media-placeholder {
-  min-height: 0;
-  padding: 0.75rem;
+.gb-simple-upload .block-editor-media-placeholder,
+.block-editor-media-placeholder {
+  min-height: 7.5rem;
+  padding: 1.1rem 1rem;
+  border: 2px dashed #93b4d8 !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #f4f8fc 0%, #eaf2fa 100%) !important;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gb-simple-upload .block-editor-media-placeholder:hover,
+.block-editor-media-placeholder:hover,
+.block-editor-media-placeholder.is-active {
+  border-color: #1e4b8c !important;
+  background: #e7f0fa !important;
+  box-shadow: 0 0 0 3px rgba(30, 75, 140, 0.12);
+}
+
+.block-editor-media-placeholder__instructions,
+.components-placeholder__instructions {
+  font-size: 0.95rem !important;
+  color: #1e4b8c !important;
+  font-weight: 650 !important;
+}
+
+.block-editor-media-placeholder .components-button,
+.block-editor-media-placeholder .components-form-file-upload {
+  margin-top: 0.35rem;
+}
+
+.edit-post-visual-editor > .hkcec-media-tip,
+.interface-interface-skeleton__content > .hkcec-media-tip,
+.gutenberg__editor > .hkcec-media-tip,
+.field--gutenberg > .hkcec-media-tip,
+.hkcec-media-tip {
+  margin: 0.65rem 0.85rem 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #b7d0ea;
+  background: #eef5fc;
+  color: #163a6e;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  z-index: 2;
+  position: relative;
+}
+
+.hkcec-media-tip strong {
+  display: block;
+  margin-bottom: 0.2rem;
 }
 
 .gb-page-intro--editor .gb-page-intro__title {
@@ -186,4 +233,11 @@ html :where(.wp-block)[data-align="wide"] {
   margin: 0.35rem 0 0.75rem;
   font-size: 0.9rem;
   color: #374151;
+}
+
+.block-editor-block-list__layout .hkcec-dept-shell.wp-block-columns,
+.editor-styles-wrapper .hkcec-dept-shell.wp-block-columns {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 1.5rem;
 }

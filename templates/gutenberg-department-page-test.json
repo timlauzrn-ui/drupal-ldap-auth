@@ -1,0 +1,38 @@
+[
+  ["core/heading", {
+    "level": 1,
+    "content": "Department name",
+    "placeholder": "Department name",
+    "className": "hkcec-dept-title"
+  }],
+  ["core/columns", {"className": "hkcec-dept-shell"}, [
+    ["core/column", {"width": "28%", "className": "hkcec-dept-nav"}, [
+      ["core/heading", {"level": 2, "content": "Quick Navigation"}],
+      ["core/list", {"values": "<li>General Information</li><li>Form</li><li>Policy &amp; Procedure</li><li>More topics</li>"}]
+    ]],
+    ["core/column", {"width": "72%", "className": "hkcec-dept-main"}, [
+      ["core/group", {"className": "hkcec-origin-card"}, [
+        ["core/heading", {"level": 3, "content": "General Information", "placeholder": "Topic heading"}],
+        ["core/list", {"values": "<li>Organisational Chart</li><li>Department Objectives</li><li>System Availability</li><li>Helpdesk</li>"}]
+      ]],
+      ["core/columns", {"className": "hkcec-origin-cards-2"}, [
+        ["core/column", {}, [
+          ["core/group", {"className": "hkcec-origin-card"}, [
+            ["core/heading", {"level": 3, "content": "Form", "placeholder": "Topic heading"}],
+            ["core/list", {"values": "<li>Request procedure</li><li>Access form</li><li>Change request</li>"}]
+          ]]
+        ]],
+        ["core/column", {}, [
+          ["core/group", {"className": "hkcec-origin-card"}, [
+            ["core/heading", {"level": 3, "content": "Policy &amp; Procedure", "placeholder": "Topic heading"}],
+            ["core/list", {"values": "<li>Department policy</li>"}]
+          ]]
+        ]]
+      ]],
+      ["core/group", {"className": "hkcec-origin-card"}, [
+        ["core/heading", {"level": 3, "content": "Another topic", "placeholder": "Topic heading"}],
+        ["core/list", {"values": "<li>Guide one</li><li>Guide two</li><li>Guide three</li>"}]
+      ]]
+    ]]
+  ]]
+]

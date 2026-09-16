@@ -88,8 +88,12 @@
                     },
                     allowedTypes: ['image'],
                     multiple: false,
-                    labels: { title: Drupal.t('Click to add a photo') },
-                  }, Drupal.t('Choose a photo from your computer.')))
+                    labels: (window.hkcecMediaUi && window.hkcecMediaUi.labels)
+                      ? window.hkcecMediaUi.labels(Drupal.t('Drag a photo here, or click to choose'))
+                      : { title: Drupal.t('Drag a photo here, or click to choose') },
+                  }, (window.hkcecMediaUi && window.hkcecMediaUi.hint)
+                    ? window.hkcecMediaUi.hint()
+                    : Drupal.t('Tip: drag and drop a photo here, or click to choose.')))
                 : el(
                     Fragment,
                     null,

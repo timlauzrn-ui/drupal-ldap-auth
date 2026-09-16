@@ -1,0 +1,24 @@
+--- a/src/Controller/BlocksController.php
++++ b/src/Controller/BlocksController.php
+@@ -157,6 +157,9 @@ class BlocksController extends ControllerBase {
+   public function loadByType(Request $request, $content_type) {
+     $config = $this->configFactory->getEditable('gutenberg.settings');
+     $config_values = $config->get($content_type . '_allowed_drupal_blocks');
++    if (!is_array($config_values)) {
++      $config_values = [];
++    }
+ 
+     // Get blocks definition.
+     $definitions = $this->blockManager->getDefinitionsForContexts($this->contextRepository->getAvailableContexts());
+--- a/src/Plugin/Editor/Gutenberg.php
++++ b/src/Plugin/Editor/Gutenberg.php
+@@ -209,8 +209,8 @@ class Gutenberg extends EditorBase implements ContainerFactoryPluginInterface {
+     $settings = [
+       'contentType' => $node_type,
+       'allowedBlocks' => $this->configFactory->get('gutenberg.settings')->get($node_type . '_allowed_blocks'),
+-      'allowedDrupalBlocks' => $this->configFactory->get('gutenberg.settings')->get($node_type . '_allowed_drupal_blocks'),
+-      'allowedContentBlockTypes' => $this->configFactory->get('gutenberg.settings')->get($node_type . '_allowed_content_block_types'),
++      'allowedDrupalBlocks' => $this->configFactory->get('gutenberg.settings')->get($node_type . '_allowed_drupal_blocks') ?? [],
++      'allowedContentBlockTypes' => $this->configFactory->get('gutenberg.settings')->get($node_type . '_allowed_content_block_types') ?? [],
+       'blackList' => $blocks_settings['blacklist'],
+     ];

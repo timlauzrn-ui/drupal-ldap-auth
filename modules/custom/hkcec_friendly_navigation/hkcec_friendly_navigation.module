@@ -8,13 +8,54 @@ declare(strict_types=1);
  */
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
+use Drupal\Core\Link;
+use Drupal\node\NodeInterface;
 
 /**
  * Implements hook_install().
  */
 function hkcec_friendly_navigation_install(): void {
   \Drupal::service('hkcec_friendly_navigation.menu_sync')->syncAll();
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for node.html.twig.
+ *
+ * Child Basic pages with a Parent department show a back link above content.
+ */
+function hkcec_friendly_navigation_preprocess_node(array &$variables): void {
+  /** @var \Drupal\node\NodeInterface|null $node */
+  $node = $variables['node'] ?? NULL;
+  if (!$node instanceof NodeInterface || $node->bundle() !== 'page') {
+    return;
+  }
+  if (($variables['view_mode'] ?? '') !== 'full') {
+    return;
+  }
+  if (!$node->hasField('field_parent_department') || $node->get('field_parent_department')->isEmpty()) {
+    return;
+  }
+  $parent = $node->get('field_parent_department')->entity;
+  if (!$parent instanceof NodeInterface || !$parent->access('view')) {
+    return;
+  }
+  $back = [
+    '#type' => 'container',
+    '#attributes' => ['class' => ['gb-parent-back']],
+    'link' => [
+      '#type' => 'link',
+      '#title' => t('← Back to @title', ['@title' => $parent->label()]),
+      '#url' => $parent->toUrl(),
+      '#attributes' => [
+        'class' => ['gb-parent-back__link'],
+        'rel' => 'up',
+      ],
+    ],
+    '#weight' => -100,
+  ];
+  if (isset($variables['content']) && is_array($variables['content'])) {
+    $variables['content']['hkcec_parent_back'] = $back;
+  }
 }
 
 /**
@@ -31,7 +72,6 @@ function hkcec_friendly_navigation_form_node_form_alter(array &$form, FormStateI
     if (isset($form['path'])) {
       $form['path']['#access'] = FALSE;
     }
-    // Pathauto widget may live under pathauto key.
     if (isset($form['path']['widget'][0]['pathauto'])) {
       $form['path']['#access'] = FALSE;
     }
@@ -43,22 +83,24 @@ function hkcec_friendly_navigation_form_node_form_alter(array &$form, FormStateI
     }
   }
 
+  if (isset($form['field_parent_department'])) {
+    $form['field_parent_department']['#weight'] = -5;
+  }
+
   // Simplify Menu settings for everyone.
   if (!isset($form['menu'])) {
     return;
   }
 
   $form['menu']['#title'] = t('Show in navigation menu');
-  $form['menu']['#description'] = t('Add this page to the public Main menu or your department menu. The URL is created automatically from the page title — you do not need to type a path.');
+  $form['menu']['#description'] = t('Add this page to the public Main menu or your department menu. To nest it under a department, choose that department as the parent item (and set Parent department above). The URL is created automatically from the page title.');
   $form['menu']['#open'] = TRUE;
 
   $menus = \Drupal::service('hkcec_friendly_navigation.menu_sync')->getMenusForAccount($account);
   if (isset($form['menu']['menu_parent'])) {
-    // Restrict parent options to allowed menus only.
     $options = $form['menu']['menu_parent']['#options'] ?? [];
     $filtered = [];
     foreach ($options as $key => $label) {
-      // Keys look like "main:" or "main:menu_link_content:uuid" or "dept_mis:".
       $menu_id = explode(':', (string) $key, 2)[0];
       if (isset($menus[$menu_id])) {
         $filtered[$key] = $label;
@@ -68,7 +110,7 @@ function hkcec_friendly_navigation_form_node_form_alter(array &$form, FormStateI
       $form['menu']['menu_parent']['#options'] = $filtered;
     }
     $form['menu']['menu_parent']['#title'] = t('Menu and parent item');
-    $form['menu']['menu_parent']['#description'] = t('Choose Main menu (public) or a department menu, then an optional parent link.');
+    $form['menu']['menu_parent']['#description'] = t('Choose Main menu (public) or a department menu, then an optional parent link (for example under Human Resources).');
   }
   if (isset($form['menu']['title'])) {
     $form['menu']['title']['#title'] = t('Menu label');
@@ -84,6 +126,6 @@ function hkcec_friendly_navigation_form_node_form_alter(array &$form, FormStateI
  */
 function hkcec_friendly_navigation_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
   if ($route_name === 'help.page.hkcec_friendly_navigation') {
-    return '<p>' . t('Pages get automatic URLs from their titles (Pathauto). Use <em>Show this page in a menu</em> on the page form to add links to the public Main menu or your department menu. Department menus appear as a second navigation bar for members of that department.') . '</p>';
+    return '<p>' . t('Pages get automatic URLs from their titles (Pathauto). Use <em>Show this page in a menu</em> on the page form to add links to the public Main menu or your department menu. For second-layer content, set <em>Parent department</em> so visitors can go back to that department (not only Home). Department menus appear as a second navigation bar for members of that department.') . '</p>';
   }
 }

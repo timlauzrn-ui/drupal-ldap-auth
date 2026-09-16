@@ -8,7 +8,7 @@ docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval 
 use Drupal\layout_builder\Section;
 use Drupal\node\Entity\NodeType;
 
-foreach (["layout", "page", "article"] as $bundle) {
+foreach (["layout", "page", "article", "department_page", "department_page_test"] as $bundle) {
   $type = NodeType::load($bundle);
   if (!$type) {
     continue;

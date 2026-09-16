@@ -1,9 +1,9 @@
 # Libraries for the Gutenberg editor and frontend.
+# Editor JS is attached per content type in hook_page_attachments() so
+# department_page_test can use origin Gutenberg blocks without HKCEC blocks.
 libraries-edit:
-  - hkcec_gutenberg_modern_blocks/blocks
   - hkcec_gutenberg_modern_blocks/editor
 libraries-view:
-  - hkcec_gutenberg_modern_blocks/blocks
   - hkcec_gutenberg_modern_blocks/frontend
 
 # Register custom blocks so they appear in content-type allowed lists.

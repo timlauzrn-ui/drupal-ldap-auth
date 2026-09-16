@@ -7,7 +7,7 @@
 
   const { createElement: el } = wp.element;
 
-  window.hkcecEditor = {
+  window.hkcecEditor = Object.assign({}, window.hkcecEditor || {}, {
     helpBox: function (title, steps) {
       return el(
         'div',
@@ -27,11 +27,10 @@
         'div',
         { className: 'gb-excel__head' },
         el('span', null, Drupal.t('Name people see')),
-        el('span', null, Drupal.t('Where it goes (paste a link, or leave #)')),
         el('span', { className: 'gb-excel__col-action' }, ''),
       );
     },
-  };
+  });
 
   const FULL_WIDTH_CSS = [
     '.editor-styles-wrapper{--wp--style--global--content-size:100%;--wp--style--global--wide-size:100%;}',

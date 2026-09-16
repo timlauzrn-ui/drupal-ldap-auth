@@ -17,3 +17,8 @@ services:
       - '@hkcec_friendly_navigation.menu_sync'
     tags:
       - { name: event_subscriber }
+
+  hkcec_friendly_navigation.parent_breadcrumb:
+    class: Drupal\hkcec_friendly_navigation\ParentDepartmentBreadcrumbBuilder
+    tags:
+      - { name: breadcrumb_builder, priority: 1100 }

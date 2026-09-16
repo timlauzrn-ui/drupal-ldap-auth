@@ -13,6 +13,7 @@ use Drupal\node\NodeForm;
  *
  * Ensure editor-width CSS is on node add/edit even if Gutenberg iframe
  * boot does not pick up gutenberg.yml libraries-edit.
+ * Also load intranet frontend JS/CSS on node pages that use department layouts.
  */
 function hkcec_gutenberg_modern_blocks_page_attachments(array &$attachments): void {
   $route = \Drupal::routeMatch()->getRouteName();
@@ -21,17 +22,49 @@ function hkcec_gutenberg_modern_blocks_page_attachments(array &$attachments): vo
   }
   $is_node_form = in_array($route, ['node.add', 'entity.node.edit_form'], TRUE)
     || (str_starts_with($route, 'entity.node.') && str_contains($route, 'form'));
-  if (!$is_node_form) {
-    return;
+  $node = \Drupal::routeMatch()->getParameter('node');
+  $node_type = \Drupal::routeMatch()->getParameter('node_type');
+  $bundle = NULL;
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $bundle = $node->bundle();
   }
-  $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/editor';
-  $attachments['#attached']['html_head'][] = [
-    [
-      '#tag' => 'style',
-      '#value' => 'html :where(.wp-block),.wp-block{max-width:none!important;width:100%!important;}.hkcec-gutenberg-fullwidth,.hkcec-gutenberg-fullwidth .gutenberg,.hkcec-gutenberg-fullwidth .gutenberg__editor,.hkcec-gutenberg-fullwidth .field--gutenberg,.hkcec-gutenberg-fullwidth .region-content,.gin--edit-form .gutenberg,.gin--edit-form .region-content{max-width:none!important;width:100%!important;}',
-    ],
-    'hkcec_gutenberg_fullwidth_head',
-  ];
+  elseif (is_object($node_type) && method_exists($node_type, 'id')) {
+    $bundle = $node_type->id();
+  }
+  elseif (is_string($node_type) && $node_type !== '') {
+    $bundle = $node_type;
+  }
+  $origin_only = $bundle === 'department_page_test';
+  if ($is_node_form) {
+    $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/editor';
+    // Origin-only test type: skip custom HKCEC block JS so Gutenberg inserter stays core.
+    if (!$origin_only) {
+      $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/blocks';
+    }
+    $attachments['#attached']['html_head'][] = [
+      [
+        '#tag' => 'style',
+        '#value' => 'html :where(.wp-block),.wp-block{max-width:none!important;width:100%!important;}.hkcec-gutenberg-fullwidth,.hkcec-gutenberg-fullwidth .gutenberg,.hkcec-gutenberg-fullwidth .gutenberg__editor,.hkcec-gutenberg-fullwidth .field--gutenberg,.hkcec-gutenberg-fullwidth .region-content,.gin--edit-form .gutenberg,.gin--edit-form .region-content{max-width:none!important;width:100%!important;}',
+      ],
+      'hkcec_gutenberg_fullwidth_head',
+    ];
+    // Folder hint for Gutenberg media placeholders (read by media-friendly.js).
+    $folder = '';
+    if (\Drupal::moduleHandler()->moduleExists('hkcec_department_access')
+      && function_exists('_hkcec_department_access_folder_label_for_account')) {
+      $folder = _hkcec_department_access_folder_label_for_account(\Drupal::currentUser());
+    }
+    $attachments['#attached']['drupalSettings']['hkcecMedia'] = [
+      'folderLabel' => $folder,
+      'dragDropHint' => TRUE,
+    ];
+  }
+
+  // Always attach frontend kit on node canonical views so topic/back nav works
+  // even when Gutenberg libraries-view does not load for cached markup.
+  if ($route === 'entity.node.canonical') {
+    $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/frontend';
+  }
 }
 
 /**
@@ -61,7 +94,36 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
     return;
   }
   $bundle = $form_object->getEntity()->bundle();
+  if ($bundle !== 'department_page_test') {
+    $form['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/blocks';
+  }
   $landing_types = ['page', 'landing_page', 'landing_page_test'];
+  if ($bundle === 'department_page_test') {
+    $form['hkcec_simple_help'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="gb-page-help"><strong>' . t('Department page (test) — same layout as Department page, origin blocks') . '</strong><ol>'
+        . '<li>' . t('The page uses Gutenberg Columns for the site hierarchy: left = Quick Navigation, right = resource cards.') . '</li>'
+        . '<li>' . t('Full-width cards sit in the right column. Two cards side by side use a nested Columns block (1 or 2 columns), same as the MIS department page.') . '</li>'
+        . '<li>' . t('Each card is a Group: heading + list, or heading + Details (click a Details title to expand or collapse). Add/remove Columns or Groups to change the layout. Template lock is off.') . '</li>'
+        . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
+        . '</ol></div>',
+      '#weight' => -50,
+    ];
+    $folder = '';
+    if (\Drupal::moduleHandler()->moduleExists('hkcec_department_access')
+      && function_exists('_hkcec_department_access_folder_label_for_account')) {
+      $folder = _hkcec_department_access_folder_label_for_account(\Drupal::currentUser());
+    }
+    $media_tip = $folder
+      ? t('<strong>Images:</strong> drag and drop onto an Image block, or click to browse. Files go to <em>@folder</em> automatically.', ['@folder' => $folder])
+      : t('<strong>Images:</strong> drag and drop onto an Image block, or click to browse / Media library.');
+    $form['hkcec_media_tip'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="hkcec-media-tip">' . $media_tip . '</div>',
+      '#weight' => -49,
+    ];
+    return;
+  }
   if ($bundle !== 'department_page' && !in_array($bundle, $landing_types, TRUE)) {
     return;
   }
@@ -72,17 +134,17 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
       . '<li>' . t('On the left, extra menu lines are optional. Shortcuts for each box heading are added automatically.') . '</li>'
       . '<li>' . t('On the right, each box is a topic. Type the heading, then add lines in Name | Where it goes. Click a title on the live page to open or close the box.') . '</li>'
       . '<li>' . t('Need groups inside a box (for example Hardware / Software)? Click “Add a group heading”.') . '</li>'
-      . '<li>' . t('Need a second page for a topic? Use “Add a box on the topic page”. The menu shortcut opens a page that looks like this one, with only that topic’s boxes.') . '</li>'
+      . '<li>' . t('Need a second page for a topic? Use “Add a box on the topic page”. On that child topic view, Quick Navigation shows “← Back to {department}” (hidden on the parent department overview). Separate Basic pages can set <em>Parent department</em> for the same back button in content.') . '</li>'
       . '<li>' . t('Need more boxes? Click “Add another box”. Need a new line of boxes? Click “Add another row of boxes” and pick 1, 2, or 3 boxes.') . '</li>'
-      . '<li>' . t('Pictures are optional. Click “Add a picture” only if you have one. Then click Save at the top.') . '</li>'
+      . '<li>' . t('Pictures are optional. Drag a photo onto the dashed box (or click to choose). It is saved to your department media folder automatically.') . '</li>'
       . '</ol></div>';
   }
   else {
     $markup = '<div class="gb-page-help"><strong>' . t('How to fill this home page (like Word / Excel)') . '</strong><ol>'
-      . '<li>' . t('Banner pictures: click “Add a picture”, choose a photo from your computer, then type optional words and a link.') . '</li>'
+      . '<li>' . t('Banner pictures: drag a photo onto the dashed box (or click to choose). It is saved to your department media folder automatically.') . '</li>'
       . '<li>' . t('Resource boxes: type a heading, then fill Name | Where it goes. Click the heading on the live page to open or close the box.') . '</li>'
       . '<li>' . t('Need groups inside a box? Click “Add a group heading”. Need a second page for a topic? Use “Add a box on the topic page”.') . '</li>'
-      . '<li>' . t('Hot News: add a photo, a short headline, and (optional) where it should open when clicked.') . '</li>'
+      . '<li>' . t('Hot News: drag a photo onto the box, add a short headline, and (optional) where it should open when clicked.') . '</li>'
       . '<li>' . t('You do not need HTML. Click example text and type over it. Then click Save at the top.') . '</li>'
       . '</ol></div>';
   }
@@ -91,5 +153,19 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
     '#type' => 'markup',
     '#markup' => $markup,
     '#weight' => -50,
+  ];
+
+  $folder = '';
+  if (\Drupal::moduleHandler()->moduleExists('hkcec_department_access')
+    && function_exists('_hkcec_department_access_folder_label_for_account')) {
+    $folder = _hkcec_department_access_folder_label_for_account(\Drupal::currentUser());
+  }
+  $media_tip = $folder
+    ? t('<strong>Images:</strong> drag and drop onto a photo box in the layout, or click to browse. Files go to <em>@folder</em> automatically — no need to upload elsewhere first.', ['@folder' => $folder])
+    : t('<strong>Images:</strong> drag and drop onto a photo box in the layout, or click to browse / Media library. No need to upload to a folder first.');
+  $form['hkcec_media_tip'] = [
+    '#type' => 'markup',
+    '#markup' => '<div class="hkcec-media-tip">' . $media_tip . '</div>',
+    '#weight' => -49,
   ];
 }

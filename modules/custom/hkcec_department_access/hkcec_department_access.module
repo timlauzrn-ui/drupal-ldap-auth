@@ -101,11 +101,22 @@ function hkcec_department_access_entity_query_alter(Drupal\Core\Entity\Query\Que
   }
   $tids = $resolver->getUserFolderTermIds($account);
   if ($tids === []) {
-    // No department: see nothing (or only own unfiled — block via empty directory match).
-    $query->condition('directory', -1);
+    // No department folder: only own unfiled media (friendlier than seeing nothing).
+    $own = $query->andConditionGroup()
+      ->notExists('directory')
+      ->condition('uid', (int) $account->id());
+    $query->condition($own);
     return;
   }
-  $query->condition('directory', $tids, 'IN');
+  // Department folders OR own still-unfiled uploads (so library does not look empty
+  // right after a Gutenberg upload before directory assignment is visible).
+  $or = $query->orConditionGroup()
+    ->condition('directory', $tids, 'IN');
+  $own_unfiled = $query->andConditionGroup()
+    ->notExists('directory')
+    ->condition('uid', (int) $account->id());
+  $or->condition($own_unfiled);
+  $query->condition($or);
 }
 
 /**
@@ -118,6 +129,41 @@ function hkcec_department_access_form_media_form_alter(array &$form, FormStateIn
   }
   if (isset($form['directory'])) {
     $form['directory']['#access'] = FALSE;
+  }
+  // Friendly notice: uploads are auto-filed.
+  $folder = _hkcec_department_access_folder_label_for_account($account);
+  $message = $folder
+    ? t('Drag and drop or browse to upload. New media is saved under <strong>@folder</strong> for your department.', ['@folder' => $folder])
+    : t('Drag and drop or browse to upload. New media is filed into your department folder automatically.');
+  $form['hkcec_media_friendly'] = [
+    '#type' => 'markup',
+    '#markup' => '<div class="messages messages--status" role="status">' . $message . '</div>',
+    '#weight' => -40,
+  ];
+}
+
+/**
+ * Human-readable primary department folder label for an account.
+ */
+function _hkcec_department_access_folder_label_for_account(AccountInterface $account): string {
+  try {
+    $resolver = \Drupal::service('hkcec_department_access.resolver');
+    $dept_id = $resolver->getPrimaryDepartmentId($account);
+    if ($dept_id === NULL) {
+      return '';
+    }
+    $tid = $resolver->getFolderTermIdForDepartment($dept_id);
+    if ($tid === NULL) {
+      return '';
+    }
+    $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load($tid);
+    if (!$term) {
+      return '';
+    }
+    return 'Root › ' . $term->label();
+  }
+  catch (\Throwable $e) {
+    return '';
   }
 }
 

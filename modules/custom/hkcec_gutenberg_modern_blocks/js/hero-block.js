@@ -81,8 +81,12 @@
               },
               allowedTypes: ['image'],
               multiple: false,
-              labels: { title: Drupal.t('Hero background') },
-            }, Drupal.t('Upload a full-bleed background image.'))
+              labels: (window.hkcecMediaUi && window.hkcecMediaUi.labels)
+                ? window.hkcecMediaUi.labels(Drupal.t('Drag a hero photo here, or click to choose'))
+                : { title: Drupal.t('Drag a hero photo here, or click to choose') },
+            }, (window.hkcecMediaUi && window.hkcecMediaUi.hint)
+              ? window.hkcecMediaUi.hint()
+              : Drupal.t('Tip: drag and drop a background photo, or click to choose.'))
           : el('img', {
               className: 'gb-hero__media',
               src: a.imageUrl,

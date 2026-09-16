@@ -91,7 +91,46 @@ if (json_last_error()) { throw new \Exception("Invalid landing JSON"); }
 json_decode($deptJson);
 if (json_last_error()) { throw new \Exception("Invalid department JSON"); }
 
-$blocks = [
+$core_editor_blocks = [
+  "core/block",
+  "core/pattern",
+  "core/missing",
+  "core/freeform",
+  "core/paragraph",
+  "core/heading",
+  "core/list",
+  "core/list-item",
+  "core/image",
+  "core/gallery",
+  "core/file",
+  "core/embed",
+  "core/video",
+  "core/audio",
+  "core/cover",
+  "core/buttons",
+  "core/button",
+  "core/columns",
+  "core/column",
+  "core/group",
+  "core/media-text",
+  "core/quote",
+  "core/pullquote",
+  "core/table",
+  "core/separator",
+  "core/spacer",
+  "core/html",
+  "core/code",
+  "core/preformatted",
+  "core/verse",
+  "core/details",
+  "core/text-columns",
+  "core-embed/youtube",
+  "core-embed/vimeo",
+  "core-embed/twitter",
+  "core-embed/facebook",
+  "core-embed/instagram",
+];
+$hkcec_blocks = [
   "hkcec/ad-slider",
   "hkcec/resource-grid",
   "hkcec/hot-news",
@@ -100,22 +139,8 @@ $blocks = [
   "hkcec/dept-layout",
   "hkcec/hero",
   "hkcec/feature-card",
-  "core/paragraph",
-  "core/heading",
-  "core/list",
-  "core/image",
-  "core/gallery",
-  "core/file",
-  "core/embed",
-  "core/columns",
-  "core/column",
-  "core/group",
-  "core/buttons",
-  "core/button",
-  "core/spacer",
-  "core/separator",
-  "core/html",
 ];
+$blocks = array_values(array_unique(array_merge($hkcec_blocks, $core_editor_blocks)));
 
 $c = \Drupal::configFactory()->getEditable("gutenberg.settings");
 $c->set("page_enable_full", TRUE);
@@ -126,7 +151,43 @@ $c->set("department_page_enable_full", TRUE);
 $c->set("department_page_template", $deptJson);
 $c->set("department_page_template_lock", "all");
 $c->set("department_page_allowed_blocks", $blocks);
+// Gutenberg 3.0.6 foreach()s these; NULL triggers editor PHP warnings.
+$c->set("page_allowed_drupal_blocks", []);
+$c->set("page_allowed_content_block_types", []);
+$c->set("department_page_allowed_drupal_blocks", []);
+$c->set("department_page_allowed_content_block_types", []);
+if ($c->get("department_page_test_enable_full")) {
+  $c->set("department_page_test_allowed_blocks", $core_editor_blocks);
+  $c->set("department_page_test_allowed_drupal_blocks", []);
+  $c->set("department_page_test_allowed_content_block_types", []);
+}
 $c->save();
+
+// Gutenberg reusable patterns (block_content.body) share Drupal core text_long
+// storage. Gutenberg's FieldConfig says text_with_summary, which makes saving
+// Patterns throw "Property summary is unknown".
+$body_field = \Drupal::configFactory()->getEditable("field.field.block_content.reusable_block.body");
+if ($body_field && $body_field->get("field_type") === "text_with_summary") {
+  $body_field->set("field_type", "text_long");
+  $settings = $body_field->get("settings") ?: [];
+  unset($settings["display_summary"], $settings["required_summary"]);
+  $settings["allowed_formats"] = ["plain_text"];
+  $body_field->set("settings", $settings);
+  $body_field->save();
+  echo "REUSABLE_BODY_FIELD_FIXED\n";
+}
+
+$vocab = \Drupal::entityTypeManager()->getStorage("taxonomy_vocabulary")->load("pattern_categories");
+if ($vocab) {
+  $term_storage = \Drupal::entityTypeManager()->getStorage("taxonomy_term");
+  $existing = $term_storage->loadTree("pattern_categories");
+  if (!$existing) {
+    foreach (["Featured", "Text", "Headers", "Columns", "Gallery", "Call to action"] as $name) {
+      $term_storage->create(["vid" => "pattern_categories", "name" => $name])->save();
+    }
+    echo "PATTERN_CATEGORIES_SEEDED\n";
+  }
+}
 echo "INTRANET_TEMPLATES_OK\n";
 '
 

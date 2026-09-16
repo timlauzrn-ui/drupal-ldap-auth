@@ -127,3 +127,8 @@ foreach ([["About", "about"], ["News", "news"]] as [$title, $hint]) {
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush cr
 echo "FRIENDLY_NAV_CONFIG_OK"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -x "${SCRIPT_DIR}/configure-parent-department.sh" ]]; then
+  CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-parent-department.sh"
+fi
