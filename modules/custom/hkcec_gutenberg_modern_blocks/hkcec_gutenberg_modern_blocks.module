@@ -9,6 +9,15 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeForm;
 
 /**
+ * Content types that use origin Gutenberg blocks only (no HKCEC block JS).
+ *
+ * @return string[]
+ */
+function hkcec_gutenberg_modern_blocks_origin_only_bundles(): array {
+  return ['department_page_test', 'homepage_test'];
+}
+
+/**
  * Implements hook_page_attachments().
  *
  * Ensure editor-width CSS is on node add/edit even if Gutenberg iframe
@@ -34,7 +43,7 @@ function hkcec_gutenberg_modern_blocks_page_attachments(array &$attachments): vo
   elseif (is_string($node_type) && $node_type !== '') {
     $bundle = $node_type;
   }
-  $origin_only = $bundle === 'department_page_test';
+  $origin_only = $bundle && in_array($bundle, hkcec_gutenberg_modern_blocks_origin_only_bundles(), TRUE);
   if ($is_node_form) {
     $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/editor';
     // Origin-only test type: skip custom HKCEC block JS so Gutenberg inserter stays core.
@@ -94,10 +103,37 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
     return;
   }
   $bundle = $form_object->getEntity()->bundle();
-  if ($bundle !== 'department_page_test') {
+  $origin_only = in_array($bundle, hkcec_gutenberg_modern_blocks_origin_only_bundles(), TRUE);
+  if (!$origin_only) {
     $form['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/blocks';
   }
   $landing_types = ['page', 'landing_page', 'landing_page_test'];
+  if ($bundle === 'homepage_test') {
+    $form['hkcec_simple_help'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="gb-page-help"><strong>' . t('Homepage (test) — same layout as Basic page, origin blocks') . '</strong><ol>'
+        . '<li>' . t('Banner: click the image box at the top and add a photo (same place as Ad Slider on Basic page). Add more Image blocks if you need extra banners.') . '</li>'
+        . '<li>' . t('Resource cards sit in one row of four, like the Basic page grid. Each card is heading + list. Template lock is off.') . '</li>'
+        . '<li>' . t('Hot News: add a photo and a short headline in each card.') . '</li>'
+        . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse. Patterns are in the inserter.') . '</li>'
+        . '</ol></div>',
+      '#weight' => -50,
+    ];
+    $folder = '';
+    if (\Drupal::moduleHandler()->moduleExists('hkcec_department_access')
+      && function_exists('_hkcec_department_access_folder_label_for_account')) {
+      $folder = _hkcec_department_access_folder_label_for_account(\Drupal::currentUser());
+    }
+    $media_tip = $folder
+      ? t('<strong>Images:</strong> drag and drop onto an Image block, or click to browse. Files go to <em>@folder</em> automatically.', ['@folder' => $folder])
+      : t('<strong>Images:</strong> drag and drop onto an Image block, or click to browse / Media library.');
+    $form['hkcec_media_tip'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="hkcec-media-tip">' . $media_tip . '</div>',
+      '#weight' => -49,
+    ];
+    return;
+  }
   if ($bundle === 'department_page_test') {
     $form['hkcec_simple_help'] = [
       '#type' => 'markup',

@@ -587,6 +587,7 @@
 
 /* Theme nudge: keep content wide for intranet templates (Bootstrap5) */
 .page-node-type-page .region-content,
+.page-node-type-homepage_test .region-content,
 .page-node-type-department_page .region-content,
 .page-node-type-department_page_test .region-content {
   max-width: 1200px;
@@ -595,6 +596,9 @@
 }
 
 /* —— Origin Gutenberg department layout (columns + resource cards) —— */
+.hkcec-home-title,
+h1.hkcec-home-title,
+.page-node-type-homepage_test .region-content h1.wp-block-heading:first-child,
 .hkcec-dept-title,
 h1.hkcec-dept-title,
 .page-node-type-department_page_test .region-content h1.wp-block-heading:first-child {
@@ -685,10 +689,146 @@ h1.hkcec-dept-title,
 }
 
 .hkcec-origin-cards-2.wp-block-columns,
-.wp-block-columns.hkcec-origin-cards-2 {
+.wp-block-columns.hkcec-origin-cards-2,
+.hkcec-origin-home-cards.wp-block-columns,
+.wp-block-columns.hkcec-origin-home-cards {
   gap: 1.25rem;
-  margin: 0;
+  margin: 0 0 1.25rem;
   align-items: stretch;
+}
+
+.page-node-type-homepage_test .hkcec-origin-home-cards.wp-block-columns > .wp-block-column,
+.hkcec-origin-home-cards.wp-block-columns > .wp-block-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Origin homepage = Basic page landing (banner + 4 cards + Hot News). */
+.hkcec-origin-home-banner,
+.wp-block-group.hkcec-origin-home-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  margin: 1.25rem 0;
+  min-height: 220px;
+  aspect-ratio: 21 / 9;
+  display: flex;
+  align-items: stretch;
+}
+
+.hkcec-origin-home-banner .wp-block-image,
+.hkcec-origin-home-banner figure,
+.hkcec-origin-home-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+}
+
+.hkcec-origin-home-grid,
+.wp-block-group.hkcec-origin-home-grid {
+  display: block;
+  margin: 1.5rem 0 2rem;
+}
+
+.hkcec-origin-home-grid > .wp-block-group__inner-container,
+.hkcec-origin-home-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (max-width: 992px) {
+  .hkcec-origin-home-grid > .wp-block-group__inner-container,
+  .hkcec-origin-home-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hkcec-origin-home-grid > .wp-block-group__inner-container,
+  .hkcec-origin-home-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hkcec-origin-home-grid .hkcec-origin-card,
+.hkcec-origin-home-grid .wp-block-group.hkcec-origin-card {
+  height: 100%;
+}
+
+.hkcec-origin-hot-news,
+.wp-block-group.hkcec-origin-hot-news {
+  margin: 2rem 0 2.5rem;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.hkcec-origin-hot-news-heading,
+h2.hkcec-origin-hot-news-heading,
+.hkcec-origin-hot-news > .wp-block-heading:first-child {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--intranet-blue-deep);
+}
+
+.hkcec-origin-hot-news-grid,
+.wp-block-group.hkcec-origin-hot-news-grid {
+  display: block;
+}
+
+.hkcec-origin-hot-news-grid > .wp-block-group__inner-container,
+.hkcec-origin-hot-news-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+@media (max-width: 768px) {
+  .hkcec-origin-hot-news-grid > .wp-block-group__inner-container,
+  .hkcec-origin-hot-news-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hkcec-origin-news-card,
+.wp-block-group.hkcec-origin-news-card {
+  border-radius: var(--intranet-radius);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--intranet-border);
+  box-shadow: var(--intranet-shadow);
+  padding: 0;
+  margin: 0;
+}
+
+.hkcec-origin-news-card .wp-block-image,
+.hkcec-origin-news-card figure {
+  margin: 0;
+}
+
+.hkcec-origin-news-card img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: #e5e7eb;
+}
+
+.hkcec-origin-news-card > .wp-block-heading,
+.hkcec-origin-news-card h3 {
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--intranet-text);
 }
 
 .hkcec-origin-card,

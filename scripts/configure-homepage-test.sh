@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# Create Department page (test): origin Gutenberg blocks only, Patterns available.
+# Create Homepage (test): origin Gutenberg blocks only (same idea as department_page_test).
 set -euo pipefail
 
 CONTAINER="${CONTAINER:-my-drupal}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-JSON="${PROJECT_ROOT}/templates/gutenberg-department-page-test.json"
-HTML="${PROJECT_ROOT}/templates/gutenberg-department-page-test.html"
+JSON="${PROJECT_ROOT}/templates/gutenberg-homepage-test.json"
+HTML="${PROJECT_ROOT}/templates/gutenberg-homepage-test.html"
 
 if [[ ! -f "${JSON}" ]]; then
   echo "Missing ${JSON}" >&2
   exit 1
 fi
 
-docker cp "${JSON}" "${CONTAINER}:/opt/drupal/department-page-test.json"
-docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.json
+docker cp "${JSON}" "${CONTAINER}:/opt/drupal/homepage-test.json"
+docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/homepage-test.json
 if [[ -f "${HTML}" ]]; then
-  docker cp "${HTML}" "${CONTAINER}:/opt/drupal/department-page-test.html"
-  docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.html
+  docker cp "${HTML}" "${CONTAINER}:/opt/drupal/homepage-test.html"
+  docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/homepage-test.html
 fi
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
@@ -25,17 +25,17 @@ $nt = "Drupal\\node\\Entity\\NodeType";
 $fsc = "Drupal\\field\\Entity\\FieldStorageConfig";
 $fc = "Drupal\\field\\Entity\\FieldConfig";
 
-if (!$nt::load("department_page_test")) {
+if (!$nt::load("homepage_test")) {
   $nt::create([
-    "type" => "department_page_test",
-    "name" => "Department page (test)",
-    "description" => "Same layout as Department page using origin Gutenberg blocks only.",
+    "type" => "homepage_test",
+    "name" => "Homepage (test)",
+    "description" => "Same layout as Basic page (banner, four resource cards, Hot News) using origin Gutenberg blocks only.",
     "new_revision" => TRUE,
     "display_submitted" => FALSE,
   ])->save();
-  echo "CREATED_DEPARTMENT_PAGE_TEST\n";
+  echo "CREATED_HOMEPAGE_TEST\n";
 }
-if ($type = $nt::load("department_page_test")) {
+if ($type = $nt::load("homepage_test")) {
   $type->setDisplaySubmitted(FALSE);
   $type->save();
 }
@@ -48,18 +48,18 @@ if (!$fsc::loadByName("node", "body")) {
     "cardinality" => 1,
   ])->save();
 }
-if (!$fc::loadByName("node", "department_page_test", "body")) {
+if (!$fc::loadByName("node", "homepage_test", "body")) {
   $fc::create([
     "field_name" => "body",
     "entity_type" => "node",
-    "bundle" => "department_page_test",
+    "bundle" => "homepage_test",
     "label" => "Body",
   ])->save();
-  echo "CREATED_DEPARTMENT_PAGE_TEST_BODY\n";
+  echo "CREATED_HOMEPAGE_TEST_BODY\n";
 }
-$form = \Drupal::service("entity_display.repository")->getFormDisplay("node", "department_page_test", "default");
+$form = \Drupal::service("entity_display.repository")->getFormDisplay("node", "homepage_test", "default");
 $form->setComponent("body", ["type" => "text_textarea_with_summary", "weight" => 0])->save();
-$view = \Drupal::service("entity_display.repository")->getViewDisplay("node", "department_page_test", "default");
+$view = \Drupal::service("entity_display.repository")->getViewDisplay("node", "homepage_test", "default");
 $view->removeComponent("uid");
 $view->removeComponent("created");
 $view->removeComponent("links");
@@ -104,30 +104,30 @@ $core = [
   "core-embed/facebook",
   "core-embed/instagram",
 ];
-$template = file_get_contents("/opt/drupal/department-page-test.json");
+$template = file_get_contents("/opt/drupal/homepage-test.json");
 if ($template === FALSE) {
-  throw new \Exception("Missing department-page-test.json in container");
+  throw new \Exception("Missing homepage-test.json in container");
 }
 json_decode($template);
 if (json_last_error()) {
-  throw new \Exception("Invalid department-page-test JSON: " . json_last_error_msg());
+  throw new \Exception("Invalid homepage-test JSON: " . json_last_error_msg());
 }
 
 $c = \Drupal::configFactory()->getEditable("gutenberg.settings");
-$c->set("department_page_test_enable_full", TRUE);
-$c->set("department_page_test_template", $template);
-$c->set("department_page_test_template_lock", "none");
-$c->set("department_page_test_allowed_blocks", $core);
-$c->set("department_page_test_allowed_drupal_blocks", []);
-$c->set("department_page_test_allowed_content_block_types", []);
+$c->set("homepage_test_enable_full", TRUE);
+$c->set("homepage_test_template", $template);
+$c->set("homepage_test_template_lock", "none");
+$c->set("homepage_test_allowed_blocks", $core);
+$c->set("homepage_test_allowed_drupal_blocks", []);
+$c->set("homepage_test_allowed_content_block_types", []);
 $c->save();
-echo "DEPARTMENT_PAGE_TEST_ALLOWLIST_OK count=" . count($core) . "\n";
+echo "HOMEPAGE_TEST_ALLOWLIST_OK count=" . count($core) . "\n";
 '
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush role:perm:add administrator \
-  'create department_page_test content,edit any department_page_test content,edit own department_page_test content,delete any department_page_test content,delete own department_page_test content' || true
+  'create homepage_test content,edit any homepage_test content,edit own homepage_test content,delete any homepage_test content,delete own homepage_test content' || true
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush role:perm:add editor \
-  'create department_page_test content,edit own department_page_test content,edit any department_page_test content' || true
+  'create homepage_test content,edit own homepage_test content,edit any homepage_test content' || true
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
 use Drupal\pathauto\Entity\PathautoPattern;
@@ -135,45 +135,54 @@ if (!class_exists("Drupal\\pathauto\\Entity\\PathautoPattern")) {
   echo "SKIP_PATHAUTO\n";
   return;
 }
-$id = "friendly_department_page_test";
+$id = "friendly_homepage_test";
 if (!PathautoPattern::load($id)) {
   $entity = PathautoPattern::create([
     "id" => $id,
-    "label" => "Friendly department page test",
+    "label" => "Friendly homepage test",
     "type" => "canonical_entities:node",
     "pattern" => "[node:title]",
     "weight" => -10,
   ]);
   $entity->addSelectionCondition([
     "id" => "entity_bundle:node",
-    "bundles" => ["department_page_test" => "department_page_test"],
+    "bundles" => ["homepage_test" => "homepage_test"],
     "negate" => FALSE,
     "context_mapping" => ["node" => "node"],
   ]);
   $entity->save();
-  echo "PATHAUTO_DEPARTMENT_PAGE_TEST_OK\n";
+  echo "PATHAUTO_HOMEPAGE_TEST_OK\n";
 }
 '
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '
-$html_path = "/opt/drupal/department-page-test.html";
+$html_path = "/opt/drupal/homepage-test.html";
 $html = is_file($html_path) ? file_get_contents($html_path) : "";
 $existing = \Drupal::entityQuery("node")->accessCheck(FALSE)
-  ->condition("type", "department_page_test")
-  ->range(0, 1)
+  ->condition("type", "homepage_test")
+  ->condition("title", "Homepage test")
   ->execute();
 if ($existing) {
-  echo "SAMPLE_EXISTS nid=" . reset($existing) . "\n";
+  $nid = (int) reset($existing);
+  $node = \Drupal\node\Entity\Node::load($nid);
+  if ($node && $html !== "") {
+    $node->set("body", ["value" => $html, "format" => "gutenberg"]);
+    $node->save();
+    echo "SAMPLE_UPDATED nid=" . $nid . "\n";
+  }
+  else {
+    echo "SAMPLE_EXISTS nid=" . $nid . "\n";
+  }
   return;
 }
 $node = \Drupal\node\Entity\Node::create([
-  "type" => "department_page_test",
-  "title" => "Department page test",
+  "type" => "homepage_test",
+  "title" => "Homepage test",
   "uid" => 1,
   "status" => 1,
   "promote" => 0,
   "body" => [
-    "value" => $html !== "" ? $html : "<p>Department name</p>",
+    "value" => $html !== "" ? $html : "<p>HKCEC Intranet</p>",
     "format" => "gutenberg",
   ],
 ]);
@@ -183,4 +192,4 @@ echo "SAMPLE_CREATED nid=" . $node->id() . " alias=" . $alias . "\n";
 '
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush cr
-echo "Department page (test) ready: http://localhost:8080/node/add/department_page_test"
+echo "Homepage (test) ready: http://localhost:8080/node/add/homepage_test"

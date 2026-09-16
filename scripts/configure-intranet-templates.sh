@@ -161,6 +161,11 @@ if ($c->get("department_page_test_enable_full")) {
   $c->set("department_page_test_allowed_drupal_blocks", []);
   $c->set("department_page_test_allowed_content_block_types", []);
 }
+if ($c->get("homepage_test_enable_full")) {
+  $c->set("homepage_test_allowed_blocks", $core_editor_blocks);
+  $c->set("homepage_test_allowed_drupal_blocks", []);
+  $c->set("homepage_test_allowed_content_block_types", []);
+}
 $c->save();
 
 // Gutenberg reusable patterns (block_content.body) share Drupal core text_long

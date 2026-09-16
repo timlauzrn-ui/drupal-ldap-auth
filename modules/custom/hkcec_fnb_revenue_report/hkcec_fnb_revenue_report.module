@@ -8,14 +8,64 @@ declare(strict_types=1);
  */
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeForm;
 use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_help().
+ */
+function hkcec_fnb_revenue_report_help($route_name, RouteMatchInterface $route_match) {
+  if ($route_name !== 'help.page.hkcec_fnb_revenue_report') {
+    return NULL;
+  }
+  $calendar = '/finance/fnb-revenue-calendar';
+  $settings = '/admin/config/content/fnb-revenue-report';
+  return '<p>' . t('This is the intranet <strong>F&amp;B Daily Revenue Calendar</strong>: a private month view of daily revenue PDFs for Finance and F&amp;B staff.') . '</p>'
+    . '<h2>' . t('For Finance / F&amp;B staff') . '</h2>'
+    . '<ol>'
+    . '<li>' . t('Log in, then open <a href="@url">F&amp;B Revenue Calendar</a> (also in the top menu).', ['@url' => $calendar]) . '</li>'
+    . '<li>' . t('Click a day to open that report, then download the PDF.') . '</li>'
+    . '<li>' . t('To add a day the usual way: save the PDF in the shared drop folder as <code>YYYY-MM-DD.pdf</code> (for example <code>2026-09-16.pdf</code>). The calendar picks it up overnight, or when an administrator clicks Scan.') . '</li>'
+    . '</ol>'
+    . '<h2>' . t('For administrators') . '</h2>'
+    . '<ol>'
+    . '<li>' . t('Settings (folder path, file-name pattern, Scan now): <a href="@url">F&amp;B revenue report settings</a>.', ['@url' => $settings]) . '</li>'
+    . '<li>' . t('Who can see reports: roles <em>FIN Dev</em> and <em>F&amp;B Dev</em>, mapped from AD groups <code>FIN_dev</code> and <code>F&amp;B_dev</code> on LDAP Role Mapper.') . '</li>'
+    . '<li>' . t('To add a report by hand: Content → Add content → F&amp;B Daily Revenue Report.') . '</li>'
+    . '</ol>'
+    . '<p>' . t('The PDF stays in the drop folder. Drupal does not make a second copy. People without permission cannot open the calendar or download the files.') . '</p>';
+}
 
 /**
  * Implements hook_cron().
  */
 function hkcec_fnb_revenue_report_cron(): void {
   \Drupal::service('hkcec_fnb_revenue_report.drop_folder_scanner')->scan();
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ */
+function hkcec_fnb_revenue_report_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof NodeForm) {
+    return;
+  }
+  if ($form_object->getEntity()->bundle() !== 'fnb_daily_revenue_report') {
+    return;
+  }
+  $form['hkcec_fnb_help'] = [
+    '#type' => 'markup',
+    '#markup' => '<div class="gb-page-help"><strong>' . t('F&amp;B daily revenue report') . '</strong><ol>'
+      . '<li>' . t('Preferred: put the PDF in the shared drop folder named <code>YYYY-MM-DD.pdf</code>, then use Configuration → F&amp;B revenue reports → Scan drop folder now. You do not need this form.') . '</li>'
+      . '<li>' . t('This form is only for adding a day by hand. Set the <em>Report date</em> to the day the PDF belongs to, and attach the PDF.') . '</li>'
+      . '<li>' . t('Only Finance / F&amp;B roles and administrators can see this report on the calendar.') . '</li>'
+      . '</ol></div>',
+    '#weight' => -50,
+  ];
 }
 
 /**

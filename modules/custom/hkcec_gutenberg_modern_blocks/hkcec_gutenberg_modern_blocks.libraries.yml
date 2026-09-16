@@ -1,5 +1,5 @@
 blocks:
-  version: 1.6.4
+  version: 1.6.8
   js:
     js/editor-simple.js: {}
     js/media-friendly.js: {}
@@ -38,7 +38,7 @@ blocks:
     - gutenberg/components
 
 editor:
-  version: 1.6.4
+  version: 1.6.8
   js:
     js/editor-patterns.js: {}
   css:
@@ -49,7 +49,7 @@ editor:
     - core/drupal
 
 frontend:
-  version: 1.6.4
+  version: 1.6.8
   js:
     js/intranet-cards-frontend.js: {}
     js/ad-slider-frontend.js: {}

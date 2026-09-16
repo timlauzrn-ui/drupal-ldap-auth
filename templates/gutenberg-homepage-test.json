@@ -1,0 +1,40 @@
+[
+  ["core/group", {"align": "full", "className": "hkcec-origin-home-banner"}, [
+    ["core/image", {"className": "hkcec-origin-home-banner-image"}]
+  ]],
+  ["core/group", {"className": "hkcec-origin-home-grid"}, [
+    ["core/group", {"className": "hkcec-origin-card"}, [
+      ["core/heading", {"level": 3, "content": "Company Resources", "placeholder": "Card heading"}],
+      ["core/list", {"values": "<li>Employee Handbook</li><li>Policies &amp; Procedures</li><li>Forms &amp; Templates</li><li>Organization Chart</li>"}]
+    ]],
+    ["core/group", {"className": "hkcec-origin-card"}, [
+      ["core/heading", {"level": 3, "content": "Communication", "placeholder": "Card heading"}],
+      ["core/list", {"values": "<li>Internal News</li><li>Announcements</li><li>Staff Directory</li><li>Feedback Portal</li>"}]
+    ]],
+    ["core/group", {"className": "hkcec-origin-card"}, [
+      ["core/heading", {"level": 3, "content": "Tools &amp; Systems", "placeholder": "Card heading"}],
+      ["core/list", {"values": "<li>Email Portal</li><li>Meeting Rooms</li><li>Leave Management</li><li>Expense Claims</li>"}]
+    ]],
+    ["core/group", {"className": "hkcec-origin-card"}, [
+      ["core/heading", {"level": 3, "content": "Important Contacts", "placeholder": "Card heading"}],
+      ["core/list", {"values": "<li>IT Helpdesk</li><li><a href=\"/hr\">HR Department</a></li><li>Security Office</li><li>Emergency Contacts</li>"}]
+    ]]
+  ]],
+  ["core/group", {"className": "hkcec-origin-hot-news"}, [
+    ["core/heading", {"level": 2, "content": "Hot News", "placeholder": "Hot News", "className": "hkcec-origin-hot-news-heading"}],
+    ["core/group", {"className": "hkcec-origin-hot-news-grid"}, [
+      ["core/group", {"className": "hkcec-origin-news-card"}, [
+        ["core/image", {}],
+        ["core/heading", {"level": 3, "content": "News headline", "placeholder": "Headline"}]
+      ]],
+      ["core/group", {"className": "hkcec-origin-news-card"}, [
+        ["core/image", {}],
+        ["core/heading", {"level": 3, "content": "News headline", "placeholder": "Headline"}]
+      ]],
+      ["core/group", {"className": "hkcec-origin-news-card"}, [
+        ["core/image", {}],
+        ["core/heading", {"level": 3, "content": "News headline", "placeholder": "Headline"}]
+      ]]
+    ]]
+  ]]
+]

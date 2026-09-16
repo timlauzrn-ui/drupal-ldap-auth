@@ -62,6 +62,43 @@ docker run -d --name my-drupal -p 8080:80 drupal:11-php8.4-apache
 
 That script installs LDAP, Gutenberg, Log Center, themes, etc. into the existing container.
 
+### 4b. Update an existing clone (company PC)
+
+GitHub has the code. Drupal in Docker still needs the setup scripts after `git pull`, or `department_page_test` / `homepage_test` / Patterns will be missing.
+
+```bash
+cd drupal-ldap-auth
+git fetch origin
+git checkout main
+git pull origin main
+chmod +x scripts/*.sh
+```
+
+If the site already runs in `my-drupal` (port 8080):
+
+```bash
+docker start my-drupal
+CONTAINER=my-drupal ./scripts/install-into-my-drupal.sh
+```
+
+If you used Docker Compose:
+
+```bash
+docker compose up -d
+CONTAINER=drupal-ldap-auth ./scripts/setup-compose.sh
+```
+
+After it finishes, confirm while logged in as **admin** / **admin**:
+
+| Check | URL |
+|-------|-----|
+| Homepage (test) | http://localhost:8080/node/add/homepage_test |
+| Department page (test) | http://localhost:8080/node/add/department_page_test |
+| Sample home (origin) | http://localhost:8080/homepage-test |
+| Patterns | In the Gutenberg **+** inserter → **Patterns** tab |
+
+A clone without running those scripts only has files on disk. Content types, Gutenberg allowlists, and Patterns are created by the scripts.
+
 ### 5. Daily use after setup
 
 | Action | Compose stack | `my-drupal` stack |
@@ -137,12 +174,14 @@ Matches the HKCEC Intranet Figma Make designs:
 | Design | Content type | Create URL |
 |--------|--------------|------------|
 | Landing (hero slider + 4 resource cards + Hot News) | Basic page | `/node/add/page` |
+| Landing (origin Gutenberg blocks only) | Homepage (test) | `/node/add/homepage_test` |
 | Department / HR (intro + quick nav + service cards) | Department page | `/node/add/department_page` |
 | Department (origin Gutenberg blocks only) | Department page (test) | `/node/add/department_page_test` |
 
 ```bash
 CONTAINER=my-drupal ./scripts/configure-intranet-templates.sh
 CONTAINER=my-drupal ./scripts/configure-department-page-test.sh
+CONTAINER=my-drupal ./scripts/configure-homepage-test.sh
 ```
 
 Pasteable template JSON (also applied by the script):
@@ -150,6 +189,7 @@ Pasteable template JSON (also applied by the script):
 - `templates/gutenberg-landing-page.json`
 - `templates/gutenberg-department-page.json`
 - `templates/gutenberg-department-page-test.json` / `.html` — Gutenberg **Columns** layout matching a Department page: left Quick Navigation, right resource cards (1-column row, then 2-column row, then 1-column row). Template lock is off.
+- `templates/gutenberg-homepage-test.json` / `.html` — origin Gutenberg copy of Basic page: banner Image, one row of four resource cards, Hot News photo cards. Template lock is off. Custom HKCEC blocks are not used.
 
 **Note:** The dark blue top bar (HKCEC Intranet / Human Resources / Finance / MIS / Others) is the **theme Main menu**, not Gutenberg. Edit under Structure → Menus → Main navigation. Breadcrumbs come from Easy Breadcrumb when enabled.
 
@@ -232,6 +272,10 @@ CONTAINER=my-drupal ./scripts/configure-gutenberg-modern-blocks.sh
 New Pages use a flat “landing masterpiece” template with these sections. Fill content in place; as admin, unlock to rearrange.
 
 ## F&B Daily Revenue Calendar
+
+**Non-technical daily-use guide:** [`docs/fnb-revenue-calendar-user-guide.md`](docs/fnb-revenue-calendar-user-guide.md)  
+**IT production setup (AD, J-drive mount, LDAP, cron, go-live):** [`docs/fnb-revenue-calendar-it-setup.md`](docs/fnb-revenue-calendar-it-setup.md)  
+In Drupal: **Help → HKCEC F&B Revenue Report**.
 
 Calendar of daily F&B revenue PDFs with AD-gated access. PDFs stay on the **J-drive mount** (no second Drupal archive); Drupal only stores date metadata + a file URI that streams through `private://`.
 
