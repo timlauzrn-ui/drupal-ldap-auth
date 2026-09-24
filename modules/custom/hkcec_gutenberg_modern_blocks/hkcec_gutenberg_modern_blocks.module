@@ -18,6 +18,36 @@ function hkcec_gutenberg_modern_blocks_origin_only_bundles(): array {
 }
 
 /**
+ * Implements hook_library_info_alter().
+ *
+ * The Gutenberg editor bundle assigns Drupal.editors.gutenberg while the
+ * file is loading. Core creates Drupal.editors in editor/drupal.editor.
+ * When that file runs later, the bundle throws and the visual editor
+ * never starts.
+ */
+function hkcec_gutenberg_modern_blocks_library_info_alter(array &$libraries, string $extension): void {
+  if ($extension !== 'gutenberg') {
+    return;
+  }
+  foreach ($libraries as &$library) {
+    $registers_editor = FALSE;
+    foreach (array_keys($library['js'] ?? []) as $path) {
+      $path = str_replace('\\', '/', (string) $path);
+      if (str_ends_with($path, 'build/editor/index.js') || str_ends_with($path, 'js/gutenberg.js')) {
+        $registers_editor = TRUE;
+        break;
+      }
+    }
+    if (!$registers_editor) {
+      continue;
+    }
+    $dependencies = $library['dependencies'] ?? [];
+    $dependencies[] = 'editor/drupal.editor';
+    $library['dependencies'] = array_values(array_unique($dependencies));
+  }
+}
+
+/**
  * Implements hook_page_attachments().
  *
  * Ensure editor-width CSS is on node add/edit even if Gutenberg iframe

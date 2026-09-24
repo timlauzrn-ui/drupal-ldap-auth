@@ -135,11 +135,12 @@ final class DepartmentMenuSync {
       ],
     ];
 
+    $region = $this->pickSecondaryRegion($theme);
     if (!$block) {
       $block = Block::create([
         'id' => $block_id,
         'theme' => $theme,
-        'region' => $this->pickSecondaryRegion($theme),
+        'region' => $region,
         'weight' => -10,
         'plugin' => 'system_menu_block:' . $menu_id,
         'settings' => [
@@ -161,8 +162,12 @@ final class DepartmentMenuSync {
       return;
     }
 
-    // Keep visibility in sync.
+    // Keep visibility in sync. Move a block out of Olivero's header
+    // secondary menu, which collapses the whole menu bar.
     $block->setVisibilityConfig('user_role', $visibility['user_role']);
+    if ($block->getRegion() === 'secondary_menu' && str_contains($theme, 'olivero')) {
+      $block->setRegion($region);
+    }
     $block->save();
   }
 
@@ -180,7 +185,7 @@ final class DepartmentMenuSync {
     ];
     // Without theme region introspection dependency, use safe defaults.
     if (str_contains($theme, 'olivero')) {
-      return 'secondary_menu';
+      return 'sidebar';
     }
     if (str_contains($theme, 'claro') || str_contains($theme, 'gin')) {
       return 'content';
