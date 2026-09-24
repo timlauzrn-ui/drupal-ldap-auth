@@ -16,6 +16,7 @@ use Drupal\node\NodeInterface;
  */
 function hkcec_friendly_navigation_install(): void {
   \Drupal::service('hkcec_friendly_navigation.menu_sync')->syncAll();
+  hkcec_friendly_navigation_ensure_parent_field();
 }
 
 /**
@@ -128,4 +129,65 @@ function hkcec_friendly_navigation_help($route_name, \Drupal\Core\Routing\RouteM
   if ($route_name === 'help.page.hkcec_friendly_navigation') {
     return '<p>' . t('Pages get automatic URLs from their titles (Pathauto). Use <em>Show this page in a menu</em> on the page form to add links to the public Main menu or your department menu. For second-layer content, set <em>Parent department</em> so visitors can go back to that department (not only Home). Department menus appear as a second navigation bar for members of that department.') . '</p>';
   }
+}
+
+/**
+ * Add Parent department on Basic pages so child pages can link back.
+ */
+function hkcec_friendly_navigation_ensure_parent_field(): void {
+  if (!\Drupal\node\Entity\NodeType::load('page')) {
+    return;
+  }
+  $targets = [];
+  foreach (['department_page', 'department_page_test'] as $bundle) {
+    if (\Drupal\node\Entity\NodeType::load($bundle)) {
+      $targets[$bundle] = $bundle;
+    }
+  }
+  if (!$targets) {
+    return;
+  }
+  $storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_parent_department');
+  if (!$storage) {
+    \Drupal\field\Entity\FieldStorageConfig::create([
+      'field_name' => 'field_parent_department',
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'cardinality' => 1,
+      'settings' => [
+        'target_type' => 'node',
+      ],
+    ])->save();
+  }
+  if (!\Drupal\field\Entity\FieldConfig::loadByName('node', 'page', 'field_parent_department')) {
+    \Drupal\field\Entity\FieldConfig::create([
+      'field_name' => 'field_parent_department',
+      'entity_type' => 'node',
+      'bundle' => 'page',
+      'label' => 'Parent department',
+      'required' => FALSE,
+      'description' => 'Optional. Makes this page a child of a Department page so visitors can go back from the sidebar / breadcrumbs.',
+      'settings' => [
+        'handler' => 'default:node',
+        'handler_settings' => [
+          'target_bundles' => $targets,
+          'sort' => ['field' => 'title', 'direction' => 'ASC'],
+          'auto_create' => FALSE,
+        ],
+      ],
+    ])->save();
+  }
+  $form = \Drupal::service('entity_display.repository')->getFormDisplay('node', 'page', 'default');
+  $form->setComponent('field_parent_department', [
+    'type' => 'entity_reference_autocomplete',
+    'weight' => -4,
+    'settings' => [
+      'match_operator' => 'CONTAINS',
+      'size' => 60,
+      'placeholder' => 'Start typing a department page title…',
+    ],
+  ])->save();
+  $view = \Drupal::service('entity_display.repository')->getViewDisplay('node', 'page', 'default');
+  $view->removeComponent('field_parent_department');
+  $view->save();
 }

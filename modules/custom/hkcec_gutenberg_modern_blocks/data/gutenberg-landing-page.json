@@ -1,0 +1,51 @@
+[
+  ["hkcec/ad-slider", {"align": "full", "autoplay": true, "interval": 5, "showDots": true, "showArrows": true, "slides": []}],
+  ["hkcec/resource-grid", {
+    "align": "full",
+    "columns": "4",
+    "linkStyle": "bullet",
+    "cards": [
+      {
+        "icon": "📄",
+        "title": "Company Resources",
+        "links": [
+          {"label": "Employee Handbook", "url": "#"},
+          {"label": "Policies & Procedures", "url": "#"},
+          {"label": "Forms & Templates", "url": "#"},
+          {"label": "Organization Chart", "url": "#"}
+        ]
+      },
+      {
+        "icon": "💬",
+        "title": "Communication",
+        "links": [
+          {"label": "Internal News", "url": "#"},
+          {"label": "Announcements", "url": "#"},
+          {"label": "Staff Directory", "url": "#"},
+          {"label": "Feedback Portal", "url": "#"}
+        ]
+      },
+      {
+        "icon": "📖",
+        "title": "Tools & Systems",
+        "links": [
+          {"label": "Email Portal", "url": "#"},
+          {"label": "Meeting Rooms", "url": "#"},
+          {"label": "Leave Management", "url": "#"},
+          {"label": "Expense Claims", "url": "#"}
+        ]
+      },
+      {
+        "icon": "📞",
+        "title": "Important Contacts",
+        "links": [
+          {"label": "IT Helpdesk", "url": "#"},
+          {"label": "HR Department", "url": "/hr"},
+          {"label": "Security Office", "url": "#"},
+          {"label": "Emergency Contacts", "url": "#"}
+        ]
+      }
+    ]
+  }],
+  ["hkcec/hot-news", {"align": "full", "heading": "Hot News", "items": []}]
+]

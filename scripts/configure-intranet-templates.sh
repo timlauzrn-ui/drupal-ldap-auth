@@ -12,14 +12,17 @@ DEST="/opt/drupal/web/modules/custom/hkcec_gutenberg_modern_blocks"
 LANDING_JSON="${PROJECT_ROOT}/templates/gutenberg-landing-page.json"
 DEPT_JSON="${PROJECT_ROOT}/templates/gutenberg-department-page.json"
 
-docker exec "${CONTAINER}" mkdir -p /opt/drupal/web/modules/custom
-docker exec "${CONTAINER}" rm -rf "${DEST}"
-docker cp "${SRC}/." "${CONTAINER}:${DEST}"
-docker exec "${CONTAINER}" chown -R www-data:www-data "${DEST}"
-
-docker cp "${LANDING_JSON}" "${CONTAINER}:/opt/drupal/landing.json"
-docker cp "${DEPT_JSON}" "${CONTAINER}:/opt/drupal/dept.json"
-docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/landing.json /opt/drupal/dept.json
+if [[ "${SKIP_MODULE_COPY:-}" != "1" ]]; then
+  docker exec "${CONTAINER}" mkdir -p /opt/drupal/web/modules/custom
+  docker exec "${CONTAINER}" rm -rf "${DEST}"
+  docker cp "${SRC}/." "${CONTAINER}:${DEST}"
+  docker exec "${CONTAINER}" chown -R www-data:www-data "${DEST}"
+fi
+if [[ "${SKIP_JSON_COPY:-}" != "1" ]]; then
+  docker cp "${LANDING_JSON}" "${CONTAINER}:/opt/drupal/landing.json"
+  docker cp "${DEPT_JSON}" "${CONTAINER}:/opt/drupal/dept.json"
+  docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/landing.json /opt/drupal/dept.json
+fi
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush en hkcec_gutenberg_modern_blocks gutenberg hkcec_gutenberg_template_lock -y
 
@@ -169,7 +172,7 @@ if ($c->get("homepage_test_enable_full")) {
 $c->save();
 
 // Gutenberg reusable patterns (block_content.body) share Drupal core text_long
-// storage. Gutenberg's FieldConfig says text_with_summary, which makes saving
+// storage. Gutenberg FieldConfig says text_with_summary, which makes saving
 // Patterns throw "Property summary is unknown".
 $body_field = \Drupal::configFactory()->getEditable("field.field.block_content.reusable_block.body");
 if ($body_field && $body_field->get("field_type") === "text_with_summary") {

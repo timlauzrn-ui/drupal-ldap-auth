@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Updates for friendly navigation.
+ */
+
+/**
+ * Add the Parent department field on sites that already had this module.
+ */
+function hkcec_friendly_navigation_update_9001(): void {
+  hkcec_friendly_navigation_ensure_parent_field();
+}

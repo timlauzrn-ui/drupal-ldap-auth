@@ -1,0 +1,47 @@
+[
+  ["hkcec/page-intro", {
+    "title": "Human Resources",
+    "subtitle": "Supporting our employees with comprehensive HR services and resources"
+  }],
+  ["hkcec/dept-layout", {
+    "navIcon": "📖",
+    "navIconImageUrl": "",
+    "navImages": [],
+    "navTitle": "Quick Navigation",
+    "navItems": [
+      {"label": "Employee Services", "url": "#employee-services"},
+      {"label": "Training & Development", "url": "#training"},
+      {"label": "Policies & Guidelines", "url": "#policies"}
+    ],
+    "cardColumns": "2",
+    "cards": [
+      {
+        "title": "Employee Services",
+        "links": [
+          {"label": "Payroll Information", "url": "#"},
+          {"label": "Benefits Overview", "url": "#"},
+          {"label": "Leave Requests", "url": "#"},
+          {"label": "Performance Reviews", "url": "#"}
+        ]
+      },
+      {
+        "title": "Policies & Guidelines",
+        "links": [
+          {"label": "HR Policies", "url": "#"},
+          {"label": "Code of Conduct", "url": "#"},
+          {"label": "Employee Rights", "url": "#"},
+          {"label": "Grievance Procedures", "url": "#"}
+        ]
+      },
+      {
+        "title": "Training & Development",
+        "links": [
+          {"label": "Training Programs", "url": "#"},
+          {"label": "Career Development", "url": "#"},
+          {"label": "E-Learning Portal", "url": "#"},
+          {"label": "Certification Courses", "url": "#"}
+        ]
+      }
+    ]
+  }]
+]

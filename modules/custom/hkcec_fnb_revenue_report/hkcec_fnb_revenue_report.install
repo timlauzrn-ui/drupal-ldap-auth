@@ -19,6 +19,18 @@ use Drupal\node\Entity\NodeType;
 function hkcec_fnb_revenue_report_install(): void {
   hkcec_fnb_revenue_report_ensure_bundle();
   hkcec_fnb_revenue_report_ensure_drop_folder();
+  hkcec_fnb_revenue_report_ensure_roles();
+  hkcec_fnb_revenue_report_ensure_calendar();
+}
+
+/**
+ * Add finance roles and the calendar page on sites that already had this module.
+ */
+function hkcec_fnb_revenue_report_update_9001(): void {
+  hkcec_fnb_revenue_report_ensure_bundle();
+  hkcec_fnb_revenue_report_ensure_drop_folder();
+  hkcec_fnb_revenue_report_ensure_roles();
+  hkcec_fnb_revenue_report_ensure_calendar();
 }
 
 /**
@@ -172,6 +184,7 @@ function hkcec_fnb_revenue_report_ensure_bundle(): void {
  * Ensure the private drop-folder directory exists.
  */
 function hkcec_fnb_revenue_report_ensure_drop_folder(): void {
+  hkcec_fnb_revenue_report_ensure_private_path();
   $uri = \Drupal::config('hkcec_fnb_revenue_report.settings')->get('drop_folder_uri') ?: 'private://fnb-revenue';
   $fs = \Drupal::service('file_system');
   try {
@@ -182,5 +195,218 @@ function hkcec_fnb_revenue_report_ensure_drop_folder(): void {
       '@uri' => $uri,
       '@msg' => $e->getMessage(),
     ]);
+  }
+}
+
+/**
+ * Point Drupal at sites/default/files/private when no private path is set.
+ */
+function hkcec_fnb_revenue_report_ensure_private_path(): void {
+  $current = \Drupal\Core\Site\Settings::get('file_private_path');
+  if (is_string($current) && $current !== '') {
+    return;
+  }
+  $settings = DRUPAL_ROOT . '/sites/default/settings.php';
+  $directory = DRUPAL_ROOT . '/sites/default/files/private';
+  if (!is_dir($directory) && !@mkdir($directory, 0775, TRUE) && !is_dir($directory)) {
+    \Drupal::logger('hkcec_fnb_revenue_report')->warning('Could not create the private files directory.');
+    return;
+  }
+  if (!is_file($directory . '/.htaccess')) {
+    @file_put_contents($directory . '/.htaccess', "# Deny all requests from Apache.\nRequire all denied\n");
+  }
+  if (!is_writable($settings)) {
+    \Drupal::logger('hkcec_fnb_revenue_report')->warning('Private file path is not set and settings.php is not writable.');
+    return;
+  }
+  $line = "\n\$settings['file_private_path'] = 'sites/default/files/private';\n";
+  if (@file_put_contents($settings, $line, FILE_APPEND) === FALSE) {
+    \Drupal::logger('hkcec_fnb_revenue_report')->warning('Could not write the private file path into settings.php.');
+  }
+}
+
+/**
+ * Create the private files directory on sites that already had this module.
+ */
+function hkcec_fnb_revenue_report_update_9002(): void {
+  hkcec_fnb_revenue_report_ensure_private_path();
+  hkcec_fnb_revenue_report_ensure_drop_folder();
+}
+
+/**
+ * Finance and F&B roles that can open the calendar.
+ */
+function hkcec_fnb_revenue_report_ensure_roles(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('user_role');
+  foreach (['fin_dev' => 'FIN Dev', 'fnb_dev' => 'F&B Dev'] as $id => $label) {
+    if (!$storage->load($id)) {
+      $storage->create(['id' => $id, 'label' => $label])->save();
+    }
+  }
+  $available = array_keys(\Drupal::service('user.permissions')->getPermissions());
+  $wanted = [
+    'access content',
+    'view fnb revenue reports',
+    'manage fnb revenue reports',
+    'create fnb_daily_revenue_report content',
+    'edit any fnb_daily_revenue_report content',
+    'delete any fnb_daily_revenue_report content',
+  ];
+  foreach (['fin_dev', 'fnb_dev'] as $role_id) {
+    $role = $storage->load($role_id);
+    if (!$role || $role->isAdmin()) {
+      continue;
+    }
+    foreach ($wanted as $permission) {
+      if (in_array($permission, $available, TRUE)) {
+        $role->grantPermission($permission);
+      }
+    }
+    $role->save();
+  }
+  $admin = $storage->load('administrator');
+  if ($admin && !$admin->isAdmin()) {
+    foreach (['view fnb revenue reports', 'manage fnb revenue reports', 'administer fnb revenue report'] as $permission) {
+      if (in_array($permission, $available, TRUE)) {
+        $admin->grantPermission($permission);
+      }
+    }
+    $admin->save();
+  }
+}
+
+/**
+ * Calendar page at /finance/fnb-revenue-calendar, created once.
+ */
+function hkcec_fnb_revenue_report_ensure_calendar(): void {
+  if (!\Drupal::moduleHandler()->moduleExists('fullcalendar_view') || !\Drupal::moduleHandler()->moduleExists('views')) {
+    return;
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('view');
+  if (!$storage->load('fnb_revenue_calendar')) {
+    $view = $storage->create([
+      'id' => 'fnb_revenue_calendar',
+      'label' => 'F&B Revenue Calendar',
+      'module' => 'views',
+      'base_table' => 'node_field_data',
+      'base_field' => 'nid',
+      'status' => TRUE,
+      'display' => [
+        'default' => [
+          'display_plugin' => 'default',
+          'id' => 'default',
+          'display_title' => 'Default',
+          'position' => 0,
+          'display_options' => [
+            'title' => 'F&B Daily Revenue Reports',
+            'access' => [
+              'type' => 'perm',
+              'options' => ['perm' => 'view fnb revenue reports'],
+            ],
+            'cache' => ['type' => 'tag', 'options' => []],
+            'query' => ['type' => 'views_query', 'options' => []],
+            'exposed_form' => ['type' => 'basic', 'options' => []],
+            'pager' => ['type' => 'none', 'options' => ['offset' => 0]],
+            'style' => [
+              'type' => 'fullcalendar_view_display',
+              'options' => [
+                'default_date_source' => 'now',
+                'defaultDate' => 'today',
+                'start' => 'field_report_date',
+                'end' => '',
+                'title' => 'title',
+                'right_buttons' => 'dayGridMonth,timeGridWeek,listYear',
+                'default_view' => 'dayGridMonth',
+              ],
+            ],
+            'row' => ['type' => 'fields'],
+            'fields' => [
+              'title' => [
+                'id' => 'title',
+                'table' => 'node_field_data',
+                'field' => 'title',
+                'plugin_id' => 'field',
+                'label' => '',
+                'alter' => ['alter_text' => FALSE],
+                'element_default_classes' => TRUE,
+                'type' => 'string',
+                'settings' => ['link_to_entity' => TRUE],
+              ],
+              'field_report_date' => [
+                'id' => 'field_report_date',
+                'table' => 'node__field_report_date',
+                'field' => 'field_report_date',
+                'plugin_id' => 'field',
+                'label' => '',
+                'type' => 'datetime_default',
+                'settings' => [
+                  'timezone_override' => '',
+                  'format_type' => 'html_date',
+                ],
+              ],
+            ],
+            'filters' => [
+              'status' => [
+                'id' => 'status',
+                'table' => 'node_field_data',
+                'field' => 'status',
+                'plugin_id' => 'boolean',
+                'value' => '1',
+                'group' => 1,
+                'expose' => ['operator' => FALSE],
+              ],
+              'type' => [
+                'id' => 'type',
+                'table' => 'node_field_data',
+                'field' => 'type',
+                'plugin_id' => 'bundle',
+                'value' => ['fnb_daily_revenue_report' => 'fnb_daily_revenue_report'],
+                'group' => 1,
+              ],
+            ],
+            'filter_groups' => [
+              'operator' => 'AND',
+              'groups' => [1 => 'AND'],
+            ],
+          ],
+        ],
+        'page_1' => [
+          'display_plugin' => 'page',
+          'id' => 'page_1',
+          'display_title' => 'Page',
+          'position' => 1,
+          'display_options' => [
+            'path' => 'finance/fnb-revenue-calendar',
+            'menu' => [
+              'type' => 'normal',
+              'title' => 'F&B Revenue Calendar',
+              'description' => 'Daily F&B revenue reports',
+              'expanded' => FALSE,
+              'parent' => 'system.admin_reports',
+              'weight' => 10,
+              'context' => '0',
+              'menu_name' => 'admin',
+            ],
+            'display_extenders' => [],
+          ],
+        ],
+      ],
+    ]);
+    $view->save();
+  }
+
+  $links = \Drupal::entityTypeManager()->getStorage('menu_link_content');
+  $found = $links->loadByProperties([
+    'link.uri' => 'internal:/finance/fnb-revenue-calendar',
+    'menu_name' => 'main',
+  ]);
+  if (!$found) {
+    $links->create([
+      'title' => 'F&B Revenue Calendar',
+      'link' => ['uri' => 'internal:/finance/fnb-revenue-calendar'],
+      'menu_name' => 'main',
+      'weight' => 50,
+      'enabled' => TRUE,
+    ])->save();
   }
 }

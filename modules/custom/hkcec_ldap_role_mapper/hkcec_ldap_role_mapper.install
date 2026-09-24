@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Default LDAP group mappings for the finance roles.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function hkcec_ldap_role_mapper_install(): void {
+  hkcec_ldap_role_mapper_ensure_mappings();
+}
+
+/**
+ * Add FIN_dev and F&B_dev mappings on sites that already had this module.
+ */
+function hkcec_ldap_role_mapper_update_9001(): void {
+  hkcec_ldap_role_mapper_ensure_mappings();
+}
+
+/**
+ * Map the finance LDAP groups without removing mappings already saved.
+ */
+function hkcec_ldap_role_mapper_ensure_mappings(): void {
+  $config = \Drupal::configFactory()->getEditable('hkcec_ldap_role_mapper.settings');
+  $mappings = $config->get('mappings') ?: [];
+  $wanted = [
+    ['ldap_group' => 'FIN_dev', 'rid' => 'fin_dev'],
+    ['ldap_group' => 'F&B_dev', 'rid' => 'fnb_dev'],
+    ['ldap_group' => 'FB_dev', 'rid' => 'fnb_dev'],
+  ];
+  foreach ($wanted as $row) {
+    if (!\Drupal\user\Entity\Role::load($row['rid'])) {
+      continue;
+    }
+    $found = FALSE;
+    foreach ($mappings as $mapping) {
+      if (($mapping['ldap_group'] ?? '') === $row['ldap_group'] && ($mapping['rid'] ?? '') === $row['rid']) {
+        $found = TRUE;
+        break;
+      }
+    }
+    if (!$found) {
+      $mappings[] = $row;
+    }
+  }
+  $config->set('mappings', $mappings)->save();
+}

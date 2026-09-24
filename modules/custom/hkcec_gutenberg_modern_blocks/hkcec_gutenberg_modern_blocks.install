@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Install and update the intranet Gutenberg setup shipped with this module.
+ */
+
+use Drupal\hkcec_gutenberg_modern_blocks\IntranetSetup;
+
+/**
+ * Implements hook_install().
+ */
+function hkcec_gutenberg_modern_blocks_install(): void {
+  IntranetSetup::ensure();
+}
+
+/**
+ * Create page types, Gutenberg templates, and the editor role on existing sites.
+ */
+function hkcec_gutenberg_modern_blocks_update_9001(): void {
+  IntranetSetup::ensure();
+}

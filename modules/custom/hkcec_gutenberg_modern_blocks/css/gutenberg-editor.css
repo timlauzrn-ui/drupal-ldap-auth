@@ -235,6 +235,33 @@ html :where(.wp-block)[data-align="wide"] {
   color: #374151;
 }
 
+/* Word-style format controls added beside Bold / Italic / Link. */
+.hkcec-word-popover .components-popover__content,
+.hkcec-word-popover .components-dropdown-menu__menu {
+  min-width: 10rem;
+}
+
+.edit-post-header-toolbar__left,
+.block-editor-block-toolbar,
+.block-editor-format-toolbar {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+/* Gin sets code { margin: 0.5em 0 }, and Gutenberg's editor reset clears the
+   background, so Inline code looked like plain text with a broken line gap. */
+.editor-styles-wrapper .block-editor-rich-text__editable code {
+  margin: 0;
+  padding: 0.05em 0.35em;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #eceff3;
+  color: #111827;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  vertical-align: baseline;
+}
+
 .block-editor-block-list__layout .hkcec-dept-shell.wp-block-columns,
 .editor-styles-wrapper .hkcec-dept-shell.wp-block-columns {
   display: grid !important;

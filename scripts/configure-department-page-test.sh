@@ -13,11 +13,13 @@ if [[ ! -f "${JSON}" ]]; then
   exit 1
 fi
 
-docker cp "${JSON}" "${CONTAINER}:/opt/drupal/department-page-test.json"
-docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.json
-if [[ -f "${HTML}" ]]; then
-  docker cp "${HTML}" "${CONTAINER}:/opt/drupal/department-page-test.html"
-  docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.html
+if [[ "${SKIP_JSON_COPY:-}" != "1" ]]; then
+  docker cp "${JSON}" "${CONTAINER}:/opt/drupal/department-page-test.json"
+  docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.json
+  if [[ -f "${HTML}" ]]; then
+    docker cp "${HTML}" "${CONTAINER}:/opt/drupal/department-page-test.html"
+    docker exec "${CONTAINER}" chown www-data:www-data /opt/drupal/department-page-test.html
+  fi
 fi
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush php:eval '

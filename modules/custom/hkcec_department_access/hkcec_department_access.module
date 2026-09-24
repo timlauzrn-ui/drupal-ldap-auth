@@ -18,8 +18,7 @@ use Drupal\taxonomy\TermInterface;
  * Implements hook_install().
  */
 function hkcec_department_access_install(): void {
-  \Drupal::service('hkcec_department_access.role_ensurer')->ensureRoles();
-  \Drupal::service('hkcec_department_access.folder_sync')->sync();
+  hkcec_department_access_ensure_folders();
 }
 
 /**

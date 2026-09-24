@@ -13,3 +13,4 @@ dependencies:
   - pathauto:pathauto
   - token:token
   - hkcec_department_access:hkcec_department_access
+  - hkcec_gutenberg_modern_blocks:hkcec_gutenberg_modern_blocks

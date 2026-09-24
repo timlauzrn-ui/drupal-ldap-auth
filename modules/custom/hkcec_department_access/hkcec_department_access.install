@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Create department roles and media folders when the module is enabled.
+ */
+
+/**
+ * Create department roles and media folders on sites that already had this module.
+ */
+function hkcec_department_access_update_9001(): void {
+  hkcec_department_access_ensure_folders();
+}
+
+/**
+ * Store new media uploads in the private file system.
+ */
+function hkcec_department_access_update_9002(): void {
+  hkcec_department_access_ensure_private_media();
+}
+
+/**
+ * Roles, Root > department folders, and media permissions for those roles.
+ */
+function hkcec_department_access_ensure_folders(): void {
+  hkcec_department_access_ensure_private_media();
+  if (!\Drupal::moduleHandler()->moduleExists('media_directories') || !\Drupal::moduleHandler()->moduleExists('taxonomy')) {
+    return;
+  }
+  \Drupal::service('hkcec_department_access.role_ensurer')->ensureRoles();
+  \Drupal::service('hkcec_department_access.folder_sync')->sync();
+
+  $available = array_keys(\Drupal::service('user.permissions')->getPermissions());
+  $wanted = [
+    'access content',
+    'view media',
+    'create media',
+    'update media',
+    'access media overview',
+    'access media library',
+    'create image media',
+    'create document media',
+    'view own unpublished media',
+  ];
+  $storage = \Drupal::entityTypeManager()->getStorage('user_role');
+  $departments = \Drupal::config('hkcec_department_access.settings')->get('departments') ?? [];
+  foreach ($departments as $row) {
+    $role_id = (string) ($row['role'] ?? '');
+    $role = $role_id !== '' ? $storage->load($role_id) : NULL;
+    if (!$role || $role->isAdmin()) {
+      continue;
+    }
+    foreach ($wanted as $permission) {
+      if (in_array($permission, $available, TRUE)) {
+        $role->grantPermission($permission);
+      }
+    }
+    $role->save();
+  }
+}
+
+/**
+ * Keep department media files out of the public files directory.
+ */
+function hkcec_department_access_ensure_private_media(): void {
+  foreach (['field_media_image', 'field_media_document', 'field_media_file'] as $name) {
+    $storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('media', $name);
+    if (!$storage) {
+      continue;
+    }
+    $settings = $storage->getSettings();
+    if (($settings['uri_scheme'] ?? '') === 'private') {
+      continue;
+    }
+    $settings['uri_scheme'] = 'private';
+    try {
+      $storage->setSettings($settings);
+      $storage->save();
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('hkcec_department_access')->warning('Could not move @field to private files: @msg', [
+        '@field' => $name,
+        '@msg' => $e->getMessage(),
+      ]);
+    }
+  }
+}
