@@ -132,18 +132,47 @@ function hkcec_friendly_navigation_help($route_name, \Drupal\Core\Routing\RouteM
 }
 
 /**
- * Add Parent department on Basic pages so child pages can link back.
+ * Department pages a child is allowed to point at.
+ *
+ * @return array<string, string>
  */
-function hkcec_friendly_navigation_ensure_parent_field(): void {
-  if (!\Drupal\node\Entity\NodeType::load('page')) {
-    return;
-  }
+function hkcec_friendly_navigation_parent_targets(): array {
   $targets = [];
-  foreach (['department_page', 'department_page_test'] as $bundle) {
+  foreach ([
+    'department_page',
+    'department_page_test',
+    'department_page_test_1col',
+    'department_page_test_2col',
+    'department_page_test_3col',
+  ] as $bundle) {
     if (\Drupal\node\Entity\NodeType::load($bundle)) {
       $targets[$bundle] = $bundle;
     }
   }
+  return $targets;
+}
+
+/**
+ * Content types that store Parent department.
+ *
+ * Basic page keeps the original field. Department page test types use it so a
+ * topic page can sit under a department page and be moved later.
+ *
+ * @return string[]
+ */
+function hkcec_friendly_navigation_parent_hosts(): array {
+  $hosts = ['page'];
+  if (function_exists('hkcec_gutenberg_modern_blocks_department_list_bundles')) {
+    $hosts = array_merge($hosts, hkcec_gutenberg_modern_blocks_department_list_bundles());
+  }
+  return array_values(array_unique($hosts));
+}
+
+/**
+ * Add Parent department on Basic pages and department page test types.
+ */
+function hkcec_friendly_navigation_ensure_parent_field(): void {
+  $targets = hkcec_friendly_navigation_parent_targets();
   if (!$targets) {
     return;
   }
@@ -159,35 +188,61 @@ function hkcec_friendly_navigation_ensure_parent_field(): void {
       ],
     ])->save();
   }
-  if (!\Drupal\field\Entity\FieldConfig::loadByName('node', 'page', 'field_parent_department')) {
-    \Drupal\field\Entity\FieldConfig::create([
-      'field_name' => 'field_parent_department',
-      'entity_type' => 'node',
-      'bundle' => 'page',
-      'label' => 'Parent department',
-      'required' => FALSE,
-      'description' => 'Optional. Makes this page a child of a Department page so visitors can go back from the sidebar / breadcrumbs.',
-      'settings' => [
-        'handler' => 'default:node',
-        'handler_settings' => [
-          'target_bundles' => $targets,
-          'sort' => ['field' => 'title', 'direction' => 'ASC'],
-          'auto_create' => FALSE,
+  foreach (hkcec_friendly_navigation_parent_hosts() as $bundle) {
+    if (!\Drupal\node\Entity\NodeType::load($bundle)) {
+      continue;
+    }
+    $description = $bundle === 'page'
+      ? 'Optional. Makes this page a child of a Department page so visitors can go back from the sidebar / breadcrumbs.'
+      : 'Optional. Makes this page a child of a department page. The address follows that parent.';
+    $field = \Drupal\field\Entity\FieldConfig::loadByName('node', $bundle, 'field_parent_department');
+    if (!$field) {
+      $field = \Drupal\field\Entity\FieldConfig::create([
+        'field_name' => 'field_parent_department',
+        'entity_type' => 'node',
+        'bundle' => $bundle,
+        'label' => 'Parent department',
+        'required' => FALSE,
+        'description' => $description,
+        'settings' => [
+          'handler' => 'default:node',
+          'handler_settings' => [
+            'target_bundles' => $targets,
+            'sort' => ['field' => 'title', 'direction' => 'ASC'],
+            'auto_create' => FALSE,
+          ],
         ],
-      ],
-    ])->save();
+      ]);
+      $field->save();
+    }
+    else {
+      $handler = $field->getSetting('handler_settings') ?: [];
+      $handler['target_bundles'] = $targets;
+      $handler['sort'] = ['field' => 'title', 'direction' => 'ASC'];
+      $handler['auto_create'] = FALSE;
+      $field->setSetting('handler_settings', $handler);
+      $field->save();
+    }
+    try {
+      $form = \Drupal::service('entity_display.repository')->getFormDisplay('node', $bundle, 'default');
+      $form->setComponent('field_parent_department', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => -4,
+        'settings' => [
+          'match_operator' => 'CONTAINS',
+          'size' => 60,
+          'placeholder' => 'Start typing a department page title…',
+        ],
+      ])->save();
+      $view = \Drupal::service('entity_display.repository')->getViewDisplay('node', $bundle, 'default');
+      $view->removeComponent('field_parent_department');
+      $view->save();
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('hkcec_friendly_navigation')->error('Parent department display was not updated for @bundle: @message', [
+        '@bundle' => $bundle,
+        '@message' => $e->getMessage(),
+      ]);
+    }
   }
-  $form = \Drupal::service('entity_display.repository')->getFormDisplay('node', 'page', 'default');
-  $form->setComponent('field_parent_department', [
-    'type' => 'entity_reference_autocomplete',
-    'weight' => -4,
-    'settings' => [
-      'match_operator' => 'CONTAINS',
-      'size' => 60,
-      'placeholder' => 'Start typing a department page title…',
-    ],
-  ])->save();
-  $view = \Drupal::service('entity_display.repository')->getViewDisplay('node', 'page', 'default');
-  $view->removeComponent('field_parent_department');
-  $view->save();
 }

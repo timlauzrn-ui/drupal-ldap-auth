@@ -11,3 +11,10 @@
 function hkcec_friendly_navigation_update_9001(): void {
   hkcec_friendly_navigation_ensure_parent_field();
 }
+
+/**
+ * Let department page test nodes record a parent department.
+ */
+function hkcec_friendly_navigation_update_9002(): void {
+  hkcec_friendly_navigation_ensure_parent_field();
+}

@@ -1,0 +1,20 @@
+hkcec_gutenberg_modern_blocks.department_child_create:
+  path: '/hkcec/department-child'
+  defaults:
+    _controller: '\Drupal\hkcec_gutenberg_modern_blocks\Controller\DepartmentChildController::createChild'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+hkcec_gutenberg_modern_blocks.department_child_list:
+  path: '/hkcec/department-child/{node}'
+  defaults:
+    _controller: '\Drupal\hkcec_gutenberg_modern_blocks\Controller\DepartmentChildController::listChildren'
+  methods: [GET]
+  requirements:
+    _entity_access: 'node.update'
+    node: \d+
+  options:
+    parameters:
+      node:
+        type: entity:node

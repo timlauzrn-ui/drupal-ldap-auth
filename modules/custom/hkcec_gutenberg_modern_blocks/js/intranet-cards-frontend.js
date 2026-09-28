@@ -332,6 +332,33 @@
     });
   }
 
+  Drupal.behaviors.hkcecDeptChildBack = {
+    attach: function (context) {
+      var settings = window.drupalSettings && drupalSettings.hkcecDeptChild;
+      if (!settings || !settings.parentUrl) {
+        return;
+      }
+      once('hkcec-dept-child-back', '.hkcec-dept-nav', context).forEach(function (nav) {
+        if (nav.querySelector('.hkcec-dept-back')) {
+          return;
+        }
+        var list = nav.querySelector('ul, ol');
+        var item = document.createElement('li');
+        item.className = 'hkcec-dept-back';
+        var link = document.createElement('a');
+        link.href = settings.parentUrl;
+        link.textContent = '\u2190 ' + Drupal.t('Back to') + ' ' + (settings.parentTitle || '');
+        item.appendChild(link);
+        if (list) {
+          list.insertBefore(item, list.firstChild);
+        }
+        else {
+          nav.appendChild(item);
+        }
+      });
+    },
+  };
+
   Drupal.behaviors.hkcecIntranetCards = {
     attach: function (context) {
       once('gb-card-collapse', '.gb-resource-card:not(.gb-resource-card--editor)', context).forEach(enhanceCollapse);

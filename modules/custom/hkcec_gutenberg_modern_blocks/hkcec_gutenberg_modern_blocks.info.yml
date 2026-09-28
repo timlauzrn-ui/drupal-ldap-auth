@@ -4,4 +4,9 @@ description: 'Modern Gutenberg blocks for Drupal (Ad Slider and more).'
 package: HKCEC
 core_version_requirement: '^10.3 || ^11'
 dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - drupal:filter
+  - drupal:user
   - gutenberg:gutenberg

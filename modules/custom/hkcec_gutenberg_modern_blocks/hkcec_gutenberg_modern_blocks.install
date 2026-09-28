@@ -11,7 +11,7 @@ use Drupal\hkcec_gutenberg_modern_blocks\IntranetSetup;
  * Implements hook_install().
  */
 function hkcec_gutenberg_modern_blocks_install(): void {
-  IntranetSetup::ensure();
+  hkcec_gutenberg_modern_blocks_apply_delivered_setup();
 }
 
 /**
@@ -19,4 +19,62 @@ function hkcec_gutenberg_modern_blocks_install(): void {
  */
 function hkcec_gutenberg_modern_blocks_update_9001(): void {
   IntranetSetup::ensure();
+}
+
+/**
+ * Add the 1-, 2-, and 3-column department page test samples.
+ */
+function hkcec_gutenberg_modern_blocks_update_9002(): void {
+  IntranetSetup::ensureDepartmentColumnSamples();
+}
+
+/**
+ * Add 1-, 2-, and 3-column department page test content types.
+ */
+function hkcec_gutenberg_modern_blocks_update_9003(): void {
+  IntranetSetup::ensure();
+}
+
+/**
+ * Parent department on department page test types.
+ */
+function hkcec_gutenberg_modern_blocks_update_9004(): void {
+  if (function_exists('hkcec_friendly_navigation_ensure_parent_field')) {
+    hkcec_friendly_navigation_ensure_parent_field();
+  }
+}
+
+/**
+ * Refresh page types, templates, and the parent field from this module.
+ */
+function hkcec_gutenberg_modern_blocks_update_9005(): void {
+  hkcec_gutenberg_modern_blocks_apply_delivered_setup();
+}
+
+/**
+ * Create the editor setup shipped with this module.
+ *
+ * Starter pages are added only when a content type has none yet. Existing
+ * node bodies are left as they are.
+ */
+function hkcec_gutenberg_modern_blocks_apply_delivered_setup(): void {
+  try {
+    IntranetSetup::ensure();
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('hkcec_gutenberg_modern_blocks')->error('Intranet editor setup did not finish: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+  }
+  if (!function_exists('hkcec_friendly_navigation_ensure_parent_field')) {
+    return;
+  }
+  try {
+    hkcec_friendly_navigation_ensure_parent_field();
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Parent department was not attached: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+  }
 }

@@ -6,7 +6,22 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\node\NodeForm;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * Department test types whose card lists use the editor's own marker.
+ *
+ * @return string[]
+ */
+function hkcec_gutenberg_modern_blocks_department_list_bundles(): array {
+  return [
+    'department_page_test',
+    'department_page_test_1col',
+    'department_page_test_2col',
+    'department_page_test_3col',
+  ];
+}
 
 /**
  * Content types that use origin Gutenberg blocks only (no HKCEC block JS).
@@ -14,7 +29,13 @@ use Drupal\node\NodeForm;
  * @return string[]
  */
 function hkcec_gutenberg_modern_blocks_origin_only_bundles(): array {
-  return ['department_page_test', 'homepage_test'];
+  return [
+    'department_page_test',
+    'department_page_test_1col',
+    'department_page_test_2col',
+    'department_page_test_3col',
+    'homepage_test',
+  ];
 }
 
 /**
@@ -101,8 +122,20 @@ function hkcec_gutenberg_modern_blocks_page_attachments(array &$attachments): vo
 
   // Always attach frontend kit on node canonical views so topic/back nav works
   // even when Gutenberg libraries-view does not load for cached markup.
-  if ($route === 'entity.node.canonical') {
+  if ($route === 'entity.node.canonical' && $node instanceof \Drupal\node\NodeInterface) {
     $attachments['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/frontend';
+    if (in_array($node->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)
+      && $node->hasField('field_parent_department')
+      && !$node->get('field_parent_department')->isEmpty()) {
+      $parent = $node->get('field_parent_department')->entity;
+      if ($parent instanceof \Drupal\node\NodeInterface && $parent->access('view')) {
+        $attachments['#attached']['drupalSettings']['hkcecDeptChild'] = [
+          'parentUrl' => $parent->toUrl()->toString(),
+          'parentTitle' => $parent->label(),
+        ];
+        $attachments['#cache']['tags'][] = 'node:' . $parent->id();
+      }
+    }
   }
 }
 
@@ -119,6 +152,21 @@ function hkcec_gutenberg_modern_blocks_preprocess_html(array &$variables): void 
   if ($is_node_form) {
     $variables['attributes']['class'][] = 'hkcec-gutenberg-fullwidth';
   }
+  $node = \Drupal::routeMatch()->getParameter('node');
+  $node_type = \Drupal::routeMatch()->getParameter('node_type');
+  $bundle = NULL;
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $bundle = $node->bundle();
+  }
+  elseif (is_object($node_type) && method_exists($node_type, 'id')) {
+    $bundle = $node_type->id();
+  }
+  elseif (is_string($node_type) && $node_type !== '') {
+    $bundle = $node_type;
+  }
+  if ($bundle && in_array($bundle, hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+    $variables['attributes']['class'][] = 'hkcec-dept-test-lists';
+  }
 }
 
 /**
@@ -129,10 +177,15 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
   $form['#attributes']['class'][] = 'hkcec-gutenberg-fullwidth';
 
   $form_object = $form_state->getFormObject();
-  if (!$form_object instanceof NodeForm) {
+  if (!$form_object instanceof \Drupal\node\Form\NodeForm) {
     return;
   }
-  $bundle = $form_object->getEntity()->bundle();
+  $entity = $form_object->getEntity();
+  $bundle = $entity->bundle();
+  if (in_array($bundle, hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+    hkcec_gutenberg_modern_blocks_alter_department_child_form($form, $entity);
+    $form['#after_build'][] = 'hkcec_gutenberg_modern_blocks_parent_field_after_build';
+  }
   $origin_only = in_array($bundle, hkcec_gutenberg_modern_blocks_origin_only_bundles(), TRUE);
   if (!$origin_only) {
     $form['#attached']['library'][] = 'hkcec_gutenberg_modern_blocks/blocks';
@@ -169,8 +222,9 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
       '#type' => 'markup',
       '#markup' => '<div class="gb-page-help"><strong>' . t('Department page (test) — same layout as Department page, origin blocks') . '</strong><ol>'
         . '<li>' . t('The page uses Gutenberg Columns for the site hierarchy: left = Quick Navigation, right = resource cards.') . '</li>'
-        . '<li>' . t('Full-width cards sit in the right column. Two cards side by side use a nested Columns block (1 or 2 columns), same as the MIS department page.') . '</li>'
+        . '<li>' . t('Topic cards sit in the right column. For a page that starts as one, two, or three columns, use the matching content type: Department page (test) — 1 column, 2 columns, or 3 columns.') . '</li>'
         . '<li>' . t('Each card is a Group: heading + list, or heading + Details (click a Details title to expand or collapse). Add/remove Columns or Groups to change the layout. Template lock is off.') . '</li>'
+        . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
         . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
         . '</ol></div>',
       '#weight' => -50,
@@ -187,6 +241,24 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
       '#type' => 'markup',
       '#markup' => '<div class="hkcec-media-tip">' . $media_tip . '</div>',
       '#weight' => -49,
+    ];
+    return;
+  }
+  $column_types = [
+    'department_page_test_1col' => t('one column'),
+    'department_page_test_2col' => t('two columns'),
+    'department_page_test_3col' => t('three columns'),
+  ];
+  if (isset($column_types[$bundle])) {
+    $form['hkcec_simple_help'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="gb-page-help"><strong>' . t('Department page (test) — @columns, origin blocks', ['@columns' => $column_types[$bundle]]) . '</strong><ol>'
+        . '<li>' . t('This content type starts with Quick Navigation on the left and topic cards in @columns.', ['@columns' => $column_types[$bundle]]) . '</li>'
+        . '<li>' . t('Each card is a Group: heading + list. Template lock is off, so you can add or remove cards.') . '</li>'
+        . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
+        . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
+        . '</ol></div>',
+      '#weight' => -50,
     ];
     return;
   }
@@ -234,4 +306,310 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
     '#markup' => '<div class="hkcec-media-tip">' . $media_tip . '</div>',
     '#weight' => -49,
   ];
+}
+
+/**
+ * Editor settings and the list of pages under this department page.
+ */
+function hkcec_gutenberg_modern_blocks_alter_department_child_form(array &$form, NodeInterface $entity): void {
+  $bundle = $entity->bundle();
+  $parent_id = $entity->isNew() ? 0 : (int) $entity->id();
+  $bundles = [];
+  $labels = [
+    'department_page_test' => t('Same as Department page (test)'),
+    'department_page_test_1col' => t('1 column'),
+    'department_page_test_2col' => t('2 columns'),
+    'department_page_test_3col' => t('3 columns'),
+  ];
+  foreach (hkcec_gutenberg_modern_blocks_department_list_bundles() as $id) {
+    $bundles[] = [
+      'id' => $id,
+      'label' => (string) ($labels[$id] ?? $id),
+    ];
+  }
+  $form['#attached']['drupalSettings']['hkcecDepartmentChild'] = [
+    'parentNid' => $parent_id,
+    'bundle' => $bundle,
+    'createUrl' => Url::fromRoute('hkcec_gutenberg_modern_blocks.department_child_create')->toString(),
+    'listUrl' => $parent_id
+      ? Url::fromRoute('hkcec_gutenberg_modern_blocks.department_child_list', ['node' => $parent_id])->toString()
+      : '',
+    'token' => \Drupal::csrfToken()->get('hkcec-department-child'),
+    'bundles' => $bundles,
+  ];
+  if ($parent_id < 1 || !$entity->hasField('field_parent_department')) {
+    return;
+  }
+  $form['hkcec_children'] = [
+    '#type' => 'details',
+    '#title' => t('Pages under this department'),
+    '#open' => TRUE,
+    '#weight' => -4,
+    '#tree' => TRUE,
+  ];
+  $children = hkcec_gutenberg_modern_blocks_department_children($entity);
+  if (!$children) {
+    $form['hkcec_children']['empty'] = [
+      '#markup' => '<p>' . t('No pages under this department yet. Select a list line in the editor and choose Create page.') . '</p>',
+    ];
+    return;
+  }
+  $options = hkcec_gutenberg_modern_blocks_department_parent_options();
+  foreach ($children as $child) {
+    $child_id = (int) $child->id();
+    $current = $child->hasField('field_parent_department') ? (int) $child->get('field_parent_department')->target_id : $parent_id;
+    $form['hkcec_children'][$child_id] = [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['hkcec-child-row']],
+    ];
+    $form['hkcec_children'][$child_id]['label'] = [
+      '#type' => 'link',
+      '#title' => $child->label(),
+      '#url' => $child->toUrl('edit-form'),
+    ];
+    $child_options = $options;
+    if (!isset($child_options[$current]) && $current) {
+      $child_options[$current] = $entity->label();
+    }
+    unset($child_options[$child_id]);
+    $form['hkcec_children'][$child_id]['parent'] = [
+      '#type' => 'select',
+      '#title' => t('Parent department'),
+      '#options' => $child_options,
+      '#default_value' => $current,
+      '#access' => $child->access('update'),
+    ];
+  }
+  if (isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#submit'][] = 'hkcec_gutenberg_modern_blocks_children_submit';
+  }
+}
+
+/**
+ * Move a listed child when its parent select changes.
+ */
+function hkcec_gutenberg_modern_blocks_children_submit(array &$form, FormStateInterface $form_state): void {
+  $values = $form_state->getValue('hkcec_children');
+  if (!is_array($values)) {
+    return;
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  foreach ($values as $nid => $row) {
+    if (!is_numeric($nid) || !is_array($row) || !isset($row['parent'])) {
+      continue;
+    }
+    $child = $storage->load((int) $nid);
+    if (!$child instanceof NodeInterface || !$child->access('update') || !$child->hasField('field_parent_department')) {
+      continue;
+    }
+    $new_parent = (int) $row['parent'];
+    $current = (int) $child->get('field_parent_department')->target_id;
+    if ($new_parent < 1 || $new_parent === $current || $new_parent === (int) $child->id()) {
+      continue;
+    }
+    if (hkcec_gutenberg_modern_blocks_parent_would_cycle($child, $new_parent)) {
+      \Drupal::messenger()->addWarning(t('@title was not moved, because that parent is already under this page.', [
+        '@title' => $child->label(),
+      ]));
+      continue;
+    }
+    $child->set('field_parent_department', $new_parent);
+    $child->save();
+  }
+}
+
+/**
+ * Keep Parent department above the editor instead of inside More settings.
+ */
+function hkcec_gutenberg_modern_blocks_parent_field_after_build(array $form, FormStateInterface $form_state): array {
+  if (!isset($form['field_parent_department'])) {
+    return $form;
+  }
+  foreach (['field_parent_department', 'field_parent_department_wrapper'] as $key) {
+    if (!isset($form[$key]) || !is_array($form[$key])) {
+      continue;
+    }
+    unset($form[$key]['#group']);
+    $form[$key]['#weight'] = -60;
+  }
+  $groups = &$form_state->getGroups();
+  if (isset($groups['metabox_fields']) && is_array($groups['metabox_fields'])) {
+    foreach ($groups['metabox_fields'] as $key => $child) {
+      $first = '';
+      if (is_array($child) && isset($child['#parents'][0])) {
+        $first = (string) $child['#parents'][0];
+      }
+      elseif (is_string($key)) {
+        $first = $key;
+      }
+      if (str_starts_with($first, 'field_parent_department')) {
+        unset($groups['metabox_fields'][$key]);
+      }
+    }
+  }
+  return $form;
+}
+
+/**
+ * Child pages of a department page test node.
+ *
+ * @return \Drupal\node\NodeInterface[]
+ */
+function hkcec_gutenberg_modern_blocks_department_children(NodeInterface $parent): array {
+  if (!in_array($parent->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+    return [];
+  }
+  if (!\Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_parent_department')) {
+    return [];
+  }
+  $ids = \Drupal::entityQuery('node')
+    ->accessCheck(FALSE)
+    ->condition('type', hkcec_gutenberg_modern_blocks_department_list_bundles(), 'IN')
+    ->condition('field_parent_department', $parent->id())
+    ->sort('title')
+    ->execute();
+  if (!$ids) {
+    return [];
+  }
+  $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($ids);
+  $children = [];
+  foreach ($nodes as $node) {
+    if ($node instanceof NodeInterface) {
+      $children[] = $node;
+    }
+  }
+  return $children;
+}
+
+/**
+ * Parent choices for moving a page.
+ *
+ * @return array<int, string>
+ */
+function hkcec_gutenberg_modern_blocks_department_parent_options(): array {
+  if (!\Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_parent_department')) {
+    return [];
+  }
+  $ids = \Drupal::entityQuery('node')
+    ->accessCheck(FALSE)
+    ->condition('type', hkcec_gutenberg_modern_blocks_department_list_bundles(), 'IN')
+    ->sort('title')
+    ->range(0, 200)
+    ->execute();
+  $options = [];
+  if (!$ids) {
+    return $options;
+  }
+  foreach (\Drupal::entityTypeManager()->getStorage('node')->loadMultiple($ids) as $node) {
+    if ($node instanceof NodeInterface) {
+      $options[(int) $node->id()] = $node->label();
+    }
+  }
+  return $options;
+}
+
+/**
+ * TRUE when the chosen parent is the page itself or already sits under it.
+ */
+function hkcec_gutenberg_modern_blocks_parent_would_cycle(NodeInterface $node, int $parent_id): bool {
+  if ($parent_id === (int) $node->id()) {
+    return TRUE;
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $current_id = $parent_id;
+  $seen = [(int) $node->id()];
+  $guard = 0;
+  while ($current_id && $guard < 12) {
+    if (in_array($current_id, $seen, TRUE)) {
+      return TRUE;
+    }
+    $seen[] = $current_id;
+    $current = $storage->load($current_id);
+    if (!$current instanceof NodeInterface || !$current->hasField('field_parent_department') || $current->get('field_parent_department')->isEmpty()) {
+      return FALSE;
+    }
+    $current_id = (int) $current->get('field_parent_department')->target_id;
+    $guard++;
+  }
+  return FALSE;
+}
+
+/**
+ * Drop a parent link that would make a page its own ancestor.
+ */
+function hkcec_gutenberg_modern_blocks_node_presave(NodeInterface $node): void {
+  if (!in_array($node->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+    return;
+  }
+  if (!$node->hasField('field_parent_department') || $node->get('field_parent_department')->isEmpty()) {
+    return;
+  }
+  $parent_id = (int) $node->get('field_parent_department')->target_id;
+  if ($parent_id < 1 || hkcec_gutenberg_modern_blocks_parent_would_cycle($node, $parent_id)) {
+    $node->set('field_parent_department', NULL);
+  }
+}
+
+/**
+ * Address for a child page: the parent address plus this page title.
+ */
+function hkcec_gutenberg_modern_blocks_child_alias(NodeInterface $node): ?string {
+  if (!in_array($node->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+    return NULL;
+  }
+  if (!$node->id() || !$node->hasField('field_parent_department') || $node->get('field_parent_department')->isEmpty()) {
+    return NULL;
+  }
+  $parent = $node->get('field_parent_department')->entity;
+  if (!$parent instanceof NodeInterface) {
+    return NULL;
+  }
+  $parent_alias = \Drupal::service('path_alias.manager')->getAliasByPath('/node/' . $parent->id());
+  $piece = hkcec_gutenberg_modern_blocks_alias_piece($node->label());
+  if ($piece === '') {
+    return NULL;
+  }
+  $base = (is_string($parent_alias) && $parent_alias !== '' && !str_starts_with($parent_alias, '/node/'))
+    ? $parent_alias
+    : '/' . hkcec_gutenberg_modern_blocks_alias_piece($parent->label());
+  $alias = rtrim($base, '/') . '/' . $piece;
+  if (!str_starts_with($alias, '/')) {
+    $alias = '/' . $alias;
+  }
+  if (\Drupal::hasService('pathauto.alias_uniquifier')) {
+    try {
+      \Drupal::service('pathauto.alias_uniquifier')->uniquify($alias, '/node/' . $node->id(), $node->language()->getId());
+    }
+    catch (\Throwable $e) {
+      // Keep the plain parent/title address.
+    }
+  }
+  return $alias;
+}
+
+/**
+ * A URL piece made from a title, without pulling in Pathauto when it is absent.
+ */
+function hkcec_gutenberg_modern_blocks_alias_piece(string $text): string {
+  if (\Drupal::hasService('pathauto.alias_cleaner')) {
+    $piece = \Drupal::service('pathauto.alias_cleaner')->cleanString($text);
+    return is_string($piece) ? trim($piece, '/') : '';
+  }
+  $piece = strtolower($text);
+  $piece = preg_replace('/[^a-z0-9]+/', '-', $piece) ?? '';
+  return trim($piece, '-');
+}
+
+/**
+ * Implements hook_pathauto_alias_alter().
+ */
+function hkcec_gutenberg_modern_blocks_pathauto_alias_alter(&$alias, array &$context): void {
+  $node = $context['data']['node'] ?? NULL;
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+  $custom = hkcec_gutenberg_modern_blocks_child_alias($node);
+  if (is_string($custom) && $custom !== '') {
+    $alias = $custom;
+  }
 }

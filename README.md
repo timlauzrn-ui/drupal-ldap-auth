@@ -64,29 +64,27 @@ That script installs LDAP, Gutenberg, Log Center, themes, etc. into the existing
 
 ### 4b. Update an existing clone (company PC)
 
-GitHub has the code. Drupal in Docker still needs the setup scripts after `git pull`, or `department_page_test` / `homepage_test` / Patterns will be missing.
+GitHub has the module code. After `git pull`, enable **HKCEC Gutenberg Modern Blocks** and **HKCEC Friendly Navigation**, then run database updates. That creates Homepage (test), the department page test types (including 1, 2, and 3 columns), their Gutenberg templates, the editor toolbar, and child pages. Existing page bodies are left as they are.
+
+Docker scripts remain the way to install Drupal, Gutenberg, Pathauto, and the themes on a new machine.
 
 ```bash
 cd drupal-ldap-auth
 git fetch origin
 git checkout main
 git pull origin main
-chmod +x scripts/*.sh
 ```
 
-If the site already runs in `my-drupal` (port 8080):
-
-```bash
-docker start my-drupal
-CONTAINER=my-drupal ./scripts/install-into-my-drupal.sh
-```
-
-If you used Docker Compose:
+If the site already runs in Docker Compose:
 
 ```bash
 docker compose up -d
-CONTAINER=drupal-ldap-auth ./scripts/setup-compose.sh
+docker exec drupal-ldap-auth vendor/bin/drush pm:enable hkcec_gutenberg_modern_blocks hkcec_friendly_navigation -y
+docker exec drupal-ldap-auth vendor/bin/drush updb -y
+docker exec drupal-ldap-auth vendor/bin/drush cr
 ```
+
+For a `my-drupal` container, use the same `drush` commands with `docker exec my-drupal`.
 
 After it finishes, confirm while logged in as **admin** / **admin**:
 
@@ -94,10 +92,12 @@ After it finishes, confirm while logged in as **admin** / **admin**:
 |-------|-----|
 | Homepage (test) | http://localhost:8080/node/add/homepage_test |
 | Department page (test) | http://localhost:8080/node/add/department_page_test |
+| Department page (test) — 1 column | http://localhost:8080/node/add/department_page_test_1col |
 | Sample home (origin) | http://localhost:8080/homepage-test |
+| Create page | Select a list line in a department page test editor |
 | Patterns | In the Gutenberg **+** inserter → **Patterns** tab |
 
-A clone without running those scripts only has files on disk. Content types, Gutenberg allowlists, and Patterns are created by the scripts.
+A clone has the module files on disk. Content types, Gutenberg allowlists, starter pages, and the child-page buttons are created when those two modules are enabled and database updates have run.
 
 ### 5. Daily use after setup
 
@@ -177,6 +177,9 @@ Matches the HKCEC Intranet Figma Make designs:
 | Landing (origin Gutenberg blocks only) | Homepage (test) | `/node/add/homepage_test` |
 | Department / HR (intro + quick nav + service cards) | Department page | `/node/add/department_page` |
 | Department (origin Gutenberg blocks only) | Department page (test) | `/node/add/department_page_test` |
+| Department, one / two / three card columns | Department page (test) — 1, 2, or 3 columns | `/node/add/department_page_test_1col` |
+
+These types, templates, and the **Create page** button are created when **HKCEC Gutenberg Modern Blocks** and **HKCEC Friendly Navigation** are enabled. The scripts below apply the same setup on an older container:
 
 ```bash
 CONTAINER=my-drupal ./scripts/configure-intranet-templates.sh
@@ -198,6 +201,7 @@ Pasteable template JSON (also applied by the script):
 - On a **Department page overview**, Quick Navigation does **not** show a back link.
 - On a **child topic view** (`?section=…`), the sidebar shows **← Back to {department}**, and the topic content also has a back link.
 - For a **separate Basic page** under a department: set **Parent department** — visitors get **← Back to {department}** in the content (and breadcrumbs `Home → Department → Page`).
+- On a **Department page (test)** list line, **Create page** stores a child of the same template under that department. Enabling **HKCEC Friendly Navigation** adds **Parent department**.
 
 ```bash
 CONTAINER=my-drupal ./scripts/configure-parent-department.sh

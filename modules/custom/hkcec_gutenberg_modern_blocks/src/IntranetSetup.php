@@ -29,6 +29,7 @@ final class IntranetSetup {
     self::ensurePatternCategories();
     self::ensurePermissions();
     self::ensureSampleNodes();
+    self::ensureDepartmentColumnSamples();
     self::ensureContentDisplay();
     self::ensureThemes();
   }
@@ -119,6 +120,18 @@ final class IntranetSetup {
       'department_page_test' => [
         'name' => 'Department page (test)',
         'description' => 'Same layout as Department page using origin Gutenberg blocks only.',
+      ],
+      'department_page_test_1col' => [
+        'name' => 'Department page (test) — 1 column',
+        'description' => 'Department page (test) with topic cards in one column.',
+      ],
+      'department_page_test_2col' => [
+        'name' => 'Department page (test) — 2 columns',
+        'description' => 'Department page (test) with topic cards in two columns.',
+      ],
+      'department_page_test_3col' => [
+        'name' => 'Department page (test) — 3 columns',
+        'description' => 'Department page (test) with topic cards in three columns.',
       ],
       'homepage_test' => [
         'name' => 'Homepage (test)',
@@ -229,17 +242,28 @@ final class IntranetSetup {
     $config->set('homepage_test_allowed_drupal_blocks', []);
     $config->set('homepage_test_allowed_content_block_types', []);
 
-    $dept_test = self::readData('gutenberg-department-page-test.json');
-    if ($dept_test !== NULL) {
-      $config->set('department_page_test_template', $dept_test);
-    }
-    $config->set('department_page_test_enable_full', TRUE);
-    $config->set('department_page_test_template_lock', 'none');
-    $config->set('department_page_test_allowed_blocks', $core);
-    $config->set('department_page_test_allowed_drupal_blocks', []);
-    $config->set('department_page_test_allowed_content_block_types', []);
+    self::applyOriginTemplate($config, 'department_page_test', self::readData('gutenberg-department-page-test.json'), $core);
+    self::applyOriginTemplate($config, 'department_page_test_1col', self::readData('gutenberg-department-page-test-1col.json'), $core);
+    self::applyOriginTemplate($config, 'department_page_test_2col', self::readData('gutenberg-department-page-test-2col.json'), $core);
+    self::applyOriginTemplate($config, 'department_page_test_3col', self::readData('gutenberg-department-page-test-3col.json'), $core);
 
     $config->save();
+  }
+
+  /**
+   * Enable origin Gutenberg on one content type and store its starter template.
+   *
+   * @param string[] $blocks
+   */
+  private static function applyOriginTemplate($config, string $bundle, ?string $template, array $blocks): void {
+    if ($template !== NULL && $template !== '') {
+      $config->set($bundle . '_template', $template);
+    }
+    $config->set($bundle . '_enable_full', TRUE);
+    $config->set($bundle . '_template_lock', 'none');
+    $config->set($bundle . '_allowed_blocks', $blocks);
+    $config->set($bundle . '_allowed_drupal_blocks', []);
+    $config->set($bundle . '_allowed_content_block_types', []);
   }
 
   /**
@@ -302,6 +326,15 @@ final class IntranetSetup {
       'create department_page_test content',
       'edit own department_page_test content',
       'edit any department_page_test content',
+      'create department_page_test_1col content',
+      'edit own department_page_test_1col content',
+      'edit any department_page_test_1col content',
+      'create department_page_test_2col content',
+      'edit own department_page_test_2col content',
+      'edit any department_page_test_2col content',
+      'create department_page_test_3col content',
+      'edit own department_page_test_3col content',
+      'edit any department_page_test_3col content',
       'create homepage_test content',
       'edit own homepage_test content',
       'edit any homepage_test content',
@@ -332,6 +365,21 @@ final class IntranetSetup {
       'edit own department_page_test content',
       'delete any department_page_test content',
       'delete own department_page_test content',
+      'create department_page_test_1col content',
+      'edit any department_page_test_1col content',
+      'edit own department_page_test_1col content',
+      'delete any department_page_test_1col content',
+      'delete own department_page_test_1col content',
+      'create department_page_test_2col content',
+      'edit any department_page_test_2col content',
+      'edit own department_page_test_2col content',
+      'delete any department_page_test_2col content',
+      'delete own department_page_test_2col content',
+      'create department_page_test_3col content',
+      'edit any department_page_test_3col content',
+      'edit own department_page_test_3col content',
+      'delete any department_page_test_3col content',
+      'delete own department_page_test_3col content',
       'create homepage_test content',
       'edit any homepage_test content',
       'edit own homepage_test content',
@@ -401,14 +449,124 @@ final class IntranetSetup {
       if ($sample['match_title']) {
         $query->condition('title', $sample['title']);
       }
-      $existing = $query->execute();
+      try {
+        $existing = $query->execute();
+      }
+      catch (\Throwable $e) {
+        \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter page @title was not created: @message', [
+          '@title' => $sample['title'],
+          '@message' => $e->getMessage(),
+        ]);
+        continue;
+      }
       if ($existing) {
         continue;
       }
       $html = self::readData($sample['file']) ?: $sample['fallback'];
-      $node = Node::create([
-        'type' => $sample['type'],
-        'title' => $sample['title'],
+      self::saveStarterNode($sample['type'], $sample['title'], $html);
+    }
+    self::ensurePathautoPattern('friendly_homepage_test', 'Friendly homepage test', 'homepage_test');
+    self::ensurePathautoPattern('friendly_department_page_test', 'Friendly department page test', 'department_page_test');
+    self::ensurePathautoPattern('friendly_department_page_test_1col', 'Friendly department page test 1 column', 'department_page_test_1col');
+    self::ensurePathautoPattern('friendly_department_page_test_2col', 'Friendly department page test 2 columns', 'department_page_test_2col');
+    self::ensurePathautoPattern('friendly_department_page_test_3col', 'Friendly department page test 3 columns', 'department_page_test_3col');
+  }
+
+  /**
+   * Give each column content type its own starter page.
+   *
+   * Earlier samples that lived on Department page (test) are removed so the
+   * column layouts exist only as their own content types.
+   */
+  public static function ensureDepartmentColumnSamples(): void {
+    if (!\Drupal::moduleHandler()->moduleExists('node')) {
+      return;
+    }
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    try {
+      $retired = $storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('type', 'department_page_test')
+        ->condition('title', [
+          'Department page test — 1 column',
+          'Department page test — 2 columns',
+          'Department page test — 3 columns',
+        ], 'IN')
+        ->execute();
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Retired column sample pages were not removed: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      $retired = [];
+    }
+    if ($retired) {
+      try {
+        $storage->delete($storage->loadMultiple($retired));
+      }
+      catch (\Throwable $e) {
+        \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Retired column sample pages were not removed: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+      }
+    }
+    $samples = [
+      [
+        'type' => 'department_page_test_1col',
+        'title' => 'Department page (test) — 1 column',
+        'file' => 'gutenberg-department-page-test-1col.html',
+      ],
+      [
+        'type' => 'department_page_test_2col',
+        'title' => 'Department page (test) — 2 columns',
+        'file' => 'gutenberg-department-page-test-2col.html',
+      ],
+      [
+        'type' => 'department_page_test_3col',
+        'title' => 'Department page (test) — 3 columns',
+        'file' => 'gutenberg-department-page-test-3col.html',
+      ],
+    ];
+    foreach ($samples as $sample) {
+      if (!NodeType::load($sample['type'])) {
+        continue;
+      }
+      try {
+        $existing = \Drupal::entityQuery('node')
+          ->accessCheck(FALSE)
+          ->condition('type', $sample['type'])
+          ->range(0, 1)
+          ->execute();
+      }
+      catch (\Throwable $e) {
+        \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter page @title was not created: @message', [
+          '@title' => $sample['title'],
+          '@message' => $e->getMessage(),
+        ]);
+        continue;
+      }
+      if ($existing) {
+        continue;
+      }
+      $html = self::readData($sample['file']);
+      if ($html === NULL || $html === '') {
+        continue;
+      }
+      self::saveStarterNode($sample['type'], $sample['title'], $html);
+    }
+  }
+
+  /**
+   * Save one starter page, or skip it when the Gutenberg format is unavailable.
+   */
+  private static function saveStarterNode(string $bundle, string $title, string $html): void {
+    if (!self::gutenbergFormatReady()) {
+      return;
+    }
+    try {
+      Node::create([
+        'type' => $bundle,
+        'title' => $title,
         'uid' => 1,
         'status' => 1,
         'promote' => 0,
@@ -416,11 +574,38 @@ final class IntranetSetup {
           'value' => $html,
           'format' => 'gutenberg',
         ],
-      ]);
-      $node->save();
+      ])->save();
     }
-    self::ensurePathautoPattern('friendly_homepage_test', 'Friendly homepage test', 'homepage_test');
-    self::ensurePathautoPattern('friendly_department_page_test', 'Friendly department page test', 'department_page_test');
+    catch (\Throwable $e) {
+      \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter page @title was not created: @message', [
+        '@title' => $title,
+        '@message' => $e->getMessage(),
+      ]);
+    }
+  }
+
+  /**
+   * The starter HTML is stored in the Gutenberg text format.
+   */
+  private static function gutenbergFormatReady(): bool {
+    try {
+      if (!\Drupal::moduleHandler()->moduleExists('filter')) {
+        \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter pages were skipped because the Filter module is not available.');
+        return FALSE;
+      }
+      $format = \Drupal::entityTypeManager()->getStorage('filter_format')->load('gutenberg');
+      if (!$format) {
+        \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter pages were skipped because the gutenberg text format is not available.');
+        return FALSE;
+      }
+      return TRUE;
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('hkcec_gutenberg_modern_blocks')->warning('Starter pages were skipped: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      return FALSE;
+    }
   }
 
   /**
@@ -462,7 +647,7 @@ final class IntranetSetup {
    * Hide the node title, author, and date on the intranet page types.
    */
   private static function ensureContentDisplay(): void {
-    foreach (['page', 'department_page', 'department_page_test', 'homepage_test'] as $bundle) {
+    foreach (['page', 'department_page', 'department_page_test', 'department_page_test_1col', 'department_page_test_2col', 'department_page_test_3col', 'homepage_test'] as $bundle) {
       if (!NodeType::load($bundle)) {
         continue;
       }

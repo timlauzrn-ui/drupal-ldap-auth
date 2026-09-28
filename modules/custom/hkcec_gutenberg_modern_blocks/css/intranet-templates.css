@@ -589,7 +589,10 @@
 .page-node-type-page .region-content,
 .page-node-type-homepage_test .region-content,
 .page-node-type-department_page .region-content,
-.page-node-type-department_page_test .region-content {
+.page-node-type-department_page_test .region-content,
+.page-node-type-department_page_test_1col .region-content,
+.page-node-type-department_page_test_2col .region-content,
+.page-node-type-department_page_test_3col .region-content {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
@@ -601,7 +604,10 @@ h1.hkcec-home-title,
 .page-node-type-homepage_test .region-content h1.wp-block-heading:first-child,
 .hkcec-dept-title,
 h1.hkcec-dept-title,
-.page-node-type-department_page_test .region-content h1.wp-block-heading:first-child {
+.page-node-type-department_page_test .region-content h1.wp-block-heading:first-child,
+.page-node-type-department_page_test_1col .region-content h1.wp-block-heading:first-child,
+.page-node-type-department_page_test_2col .region-content h1.wp-block-heading:first-child,
+.page-node-type-department_page_test_3col .region-content h1.wp-block-heading:first-child {
   margin: 0 0 1.1rem;
   color: var(--intranet-blue);
   font-size: 2rem;
@@ -681,6 +687,11 @@ h1.hkcec-dept-title,
   text-decoration: underline;
 }
 
+.hkcec-dept-nav .hkcec-dept-back {
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
 .hkcec-dept-main {
   min-width: 0;
   display: flex;
@@ -695,6 +706,61 @@ h1.hkcec-dept-title,
   gap: 1.25rem;
   margin: 0 0 1.25rem;
   align-items: stretch;
+}
+
+.hkcec-origin-cards-1.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-1,
+.hkcec-origin-cards-2.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-2,
+.hkcec-origin-cards-3.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-3 {
+  display: grid !important;
+  gap: 1.25rem !important;
+  margin: 0;
+  align-items: stretch;
+}
+
+.hkcec-origin-cards-1.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-1 {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.hkcec-origin-cards-2.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.hkcec-origin-cards-3.wp-block-columns,
+.wp-block-columns.hkcec-origin-cards-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.hkcec-origin-cards-1.wp-block-columns > .wp-block-column,
+.hkcec-origin-cards-2.wp-block-columns > .wp-block-column,
+.hkcec-origin-cards-3.wp-block-columns > .wp-block-column {
+  margin: 0 !important;
+  flex-basis: auto !important;
+  width: auto !important;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hkcec-origin-cards-1.wp-block-columns > .wp-block-column > .wp-block-group,
+.hkcec-origin-cards-2.wp-block-columns > .wp-block-column > .wp-block-group,
+.hkcec-origin-cards-3.wp-block-columns > .wp-block-column > .wp-block-group {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+@media (max-width: 800px) {
+  .hkcec-origin-cards-2.wp-block-columns,
+  .wp-block-columns.hkcec-origin-cards-2,
+  .hkcec-origin-cards-3.wp-block-columns,
+  .wp-block-columns.hkcec-origin-cards-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
 }
 
 .page-node-type-homepage_test .hkcec-origin-home-cards.wp-block-columns > .wp-block-column,
@@ -879,6 +945,104 @@ h2.hkcec-origin-hot-news-heading,
   position: absolute;
   left: 0;
   color: var(--intranet-blue);
+}
+
+/* Department page test cards keep the real list marker. The arrow above is
+   only for other origin cards. Dot, dash, and number come from the list block. */
+body.hkcec-dept-test-lists .hkcec-origin-card ul,
+body.hkcec-dept-test-lists .hkcec-origin-card ol,
+body.page-node-type-department-page-test .hkcec-origin-card ul,
+body.page-node-type-department-page-test .hkcec-origin-card ol,
+body.page-node-type-department-page-test-1col .hkcec-origin-card ul,
+body.page-node-type-department-page-test-1col .hkcec-origin-card ol,
+body.page-node-type-department-page-test-2col .hkcec-origin-card ul,
+body.page-node-type-department-page-test-2col .hkcec-origin-card ol,
+body.page-node-type-department-page-test-3col .hkcec-origin-card ul,
+body.page-node-type-department-page-test-3col .hkcec-origin-card ol {
+  list-style-position: outside;
+  margin: 0.25rem 0 0;
+  padding-left: 1.35rem;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card ul,
+body.page-node-type-department-page-test .hkcec-origin-card ul,
+body.page-node-type-department-page-test-1col .hkcec-origin-card ul,
+body.page-node-type-department-page-test-2col .hkcec-origin-card ul,
+body.page-node-type-department-page-test-3col .hkcec-origin-card ul {
+  list-style-type: disc;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card ol,
+body.page-node-type-department-page-test .hkcec-origin-card ol,
+body.page-node-type-department-page-test-1col .hkcec-origin-card ol,
+body.page-node-type-department-page-test-2col .hkcec-origin-card ol,
+body.page-node-type-department-page-test-3col .hkcec-origin-card ol {
+  list-style-type: decimal;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card li,
+body.page-node-type-department-page-test .hkcec-origin-card li,
+body.page-node-type-department-page-test-1col .hkcec-origin-card li,
+body.page-node-type-department-page-test-2col .hkcec-origin-card li,
+body.page-node-type-department-page-test-3col .hkcec-origin-card li {
+  padding-left: 0;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card li::before,
+body.page-node-type-department-page-test .hkcec-origin-card li::before,
+body.page-node-type-department-page-test-1col .hkcec-origin-card li::before,
+body.page-node-type-department-page-test-2col .hkcec-origin-card li::before,
+body.page-node-type-department-page-test-3col .hkcec-origin-card li::before {
+  content: none;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card li::marker,
+body.page-node-type-department-page-test .hkcec-origin-card li::marker,
+body.page-node-type-department-page-test-1col .hkcec-origin-card li::marker,
+body.page-node-type-department-page-test-2col .hkcec-origin-card li::marker,
+body.page-node-type-department-page-test-3col .hkcec-origin-card li::marker {
+  color: var(--intranet-blue);
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card .is-style-dot,
+body.page-node-type-department-page-test .hkcec-origin-card .is-style-dot,
+body.page-node-type-department-page-test-1col .hkcec-origin-card .is-style-dot,
+body.page-node-type-department-page-test-2col .hkcec-origin-card .is-style-dot,
+body.page-node-type-department-page-test-3col .hkcec-origin-card .is-style-dot {
+  list-style-type: disc;
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card .is-style-dash,
+body.page-node-type-department-page-test .hkcec-origin-card .is-style-dash,
+body.page-node-type-department-page-test-1col .hkcec-origin-card .is-style-dash,
+body.page-node-type-department-page-test-2col .hkcec-origin-card .is-style-dash,
+body.page-node-type-department-page-test-3col .hkcec-origin-card .is-style-dash {
+  list-style-type: '–  ';
+}
+
+body.hkcec-dept-test-lists .hkcec-origin-card .is-style-number,
+body.page-node-type-department-page-test .hkcec-origin-card .is-style-number,
+body.page-node-type-department-page-test-1col .hkcec-origin-card .is-style-number,
+body.page-node-type-department-page-test-2col .hkcec-origin-card .is-style-number,
+body.page-node-type-department-page-test-3col .hkcec-origin-card .is-style-number {
+  list-style-type: decimal;
+}
+
+/* A marker chosen in the toolbar is stored as list-style-type. It replaces
+   the card arrow and the default dot. */
+.hkcec-origin-card ul[style*="list-style-type"],
+.hkcec-origin-card ol[style*="list-style-type"] {
+  padding-left: 1.5rem;
+}
+
+.hkcec-origin-card ul[style*="list-style-type"] > li,
+.hkcec-origin-card ol[style*="list-style-type"] > li {
+  padding-left: 0;
+}
+
+.hkcec-origin-card ul[style*="list-style-type"] > li::before,
+.hkcec-origin-card ol[style*="list-style-type"] > li::before {
+  content: none;
 }
 
 .hkcec-origin-card a {
