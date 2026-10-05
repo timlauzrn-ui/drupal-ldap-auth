@@ -16,16 +16,24 @@
 
 /* Gutenberg classic.css: html :where(.wp-block) { max-width: 840px } */
 html :where(.wp-block),
-.wp-block,
-html :where(.editor-styles-wrapper) .block-editor-block-list__layout.is-root-container > .wp-block,
-html :where(.editor-styles-wrapper) .is-root-container > .wp-block,
-.editor-styles-wrapper .is-root-container > .block-editor-block-list__block.wp-block,
-.editor-styles-wrapper .wp-block[data-align="wide"],
-html :where(.wp-block)[data-align="wide"] {
+.wp-block {
+  max-width: none !important;
+}
+
+html :where(.editor-styles-wrapper) .block-editor-block-list__layout.is-root-container > .wp-block:not(.wp-block-column):not(.is-resized),
+html :where(.editor-styles-wrapper) .is-root-container > .wp-block:not(.wp-block-column):not(.is-resized),
+.editor-styles-wrapper .is-root-container > .block-editor-block-list__block.wp-block:not(.wp-block-column):not(.is-resized),
+.editor-styles-wrapper .wp-block[data-align="wide"]:not(.is-resized),
+html :where(.wp-block)[data-align="wide"]:not(.is-resized) {
   max-width: none !important;
   width: 100% !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
+}
+
+.editor-styles-wrapper .wp-block-column {
+  width: auto !important;
+  max-width: none !important;
 }
 
 .edit-post-visual-editor,
@@ -62,6 +70,74 @@ html :where(.wp-block)[data-align="wide"] {
 .gin--edit-form.page-node-type-landing-page .region-content {
   max-width: none !important;
   width: 100% !important;
+}
+
+.hkcec-child-action {
+  width: auto;
+  padding: 0 0.6rem;
+}
+
+.hkcec-child-modal .components-modal__content {
+  min-width: 22rem;
+}
+
+.hkcec-child-dialog label {
+  display: block;
+  margin: 0.35rem 0 0.2rem;
+  font-weight: 600;
+}
+
+.hkcec-child-dialog input[type="text"],
+.hkcec-child-dialog select {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+}
+
+.hkcec-child-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.hkcec-child-page.components-button {
+  justify-content: flex-start;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}
+
+.hkcec-guidance {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+}
+
+.hkcec-guidance-button {
+  height: 32px;
+  padding: 0 0.7rem;
+}
+
+.hkcec-guidance-button[aria-pressed="true"] {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.editor-styles-wrapper.hkcec-phone-preview {
+  background: #d9dde3;
+}
+
+.editor-styles-wrapper.hkcec-phone-preview .block-editor-block-list__layout.is-root-container,
+.editor-styles-wrapper.hkcec-phone-preview .is-root-container {
+  max-width: 390px !important;
+  width: 390px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .gb-dept-layout.gb-dept-layout--editor {
@@ -262,24 +338,18 @@ html :where(.wp-block)[data-align="wide"] {
   vertical-align: baseline;
 }
 
-.block-editor-block-list__layout .hkcec-dept-shell.wp-block-columns,
-.editor-styles-wrapper .hkcec-dept-shell.wp-block-columns {
-  display: grid !important;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-  gap: 1.5rem;
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-dept-shell.wp-block-columns:not(.is-not-stacked-on-mobile),
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-1.wp-block-columns:not(.is-not-stacked-on-mobile),
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-2.wp-block-columns:not(.is-not-stacked-on-mobile),
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-3.wp-block-columns:not(.is-not-stacked-on-mobile) {
+  flex-direction: column !important;
+  flex-wrap: wrap !important;
 }
 
-.editor-styles-wrapper .hkcec-origin-cards-1.wp-block-columns {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-}
-
-.editor-styles-wrapper .hkcec-origin-cards-2.wp-block-columns {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-.editor-styles-wrapper .hkcec-origin-cards-3.wp-block-columns {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-dept-shell.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column,
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-1.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column,
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-2.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column,
+.editor-styles-wrapper.hkcec-phone-preview .hkcec-origin-cards-3.wp-block-columns:not(.is-not-stacked-on-mobile) > .wp-block-column {
+  flex-basis: 100% !important;
+  width: 100% !important;
 }

@@ -194,7 +194,7 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
   if ($bundle === 'homepage_test') {
     $form['hkcec_simple_help'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="gb-page-help"><strong>' . t('Homepage (test) — same layout as Basic page, origin blocks') . '</strong><ol>'
+      '#markup' => '<div class="gb-page-help"><strong>' . t('Homepage — same layout as Basic page, origin blocks') . '</strong><ol>'
         . '<li>' . t('Banner: click the image box at the top and add a photo (same place as Ad Slider on Basic page). Add more Image blocks if you need extra banners.') . '</li>'
         . '<li>' . t('Resource cards sit in one row of four, like the Basic page grid. Each card is heading + list. Template lock is off.') . '</li>'
         . '<li>' . t('Hot News: add a photo and a short headline in each card.') . '</li>'
@@ -220,9 +220,9 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
   if ($bundle === 'department_page_test') {
     $form['hkcec_simple_help'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="gb-page-help"><strong>' . t('Department page (test) — same layout as Department page, origin blocks') . '</strong><ol>'
+      '#markup' => '<div class="gb-page-help"><strong>' . t('Department landing page — same layout as Department page, origin blocks') . '</strong><ol>'
         . '<li>' . t('The page uses Gutenberg Columns for the site hierarchy: left = Quick Navigation, right = resource cards.') . '</li>'
-        . '<li>' . t('Topic cards sit in the right column. For a page that starts as one, two, or three columns, use the matching content type: Department page (test) — 1 column, 2 columns, or 3 columns.') . '</li>'
+        . '<li>' . t('Topic cards sit in the right column. For a page that starts as one, two, or three columns, use the matching content type: 1 column content, 2 column content, or 3 column content.') . '</li>'
         . '<li>' . t('Each card is a Group: heading + list, or heading + Details (click a Details title to expand or collapse). Add/remove Columns or Groups to change the layout. Template lock is off.') . '</li>'
         . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
         . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
@@ -250,9 +250,14 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
     'department_page_test_3col' => t('three columns'),
   ];
   if (isset($column_types[$bundle])) {
+    $column_names = [
+      'department_page_test_1col' => t('1 column content'),
+      'department_page_test_2col' => t('2 column content'),
+      'department_page_test_3col' => t('3 column content'),
+    ];
     $form['hkcec_simple_help'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="gb-page-help"><strong>' . t('Department page (test) — @columns, origin blocks', ['@columns' => $column_types[$bundle]]) . '</strong><ol>'
+      '#markup' => '<div class="gb-page-help"><strong>' . t('@name — origin blocks', ['@name' => $column_names[$bundle]]) . '</strong><ol>'
         . '<li>' . t('This content type starts with Quick Navigation on the left and topic cards in @columns.', ['@columns' => $column_types[$bundle]]) . '</li>'
         . '<li>' . t('Each card is a Group: heading + list. Template lock is off, so you can add or remove cards.') . '</li>'
         . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
@@ -316,10 +321,10 @@ function hkcec_gutenberg_modern_blocks_alter_department_child_form(array &$form,
   $parent_id = $entity->isNew() ? 0 : (int) $entity->id();
   $bundles = [];
   $labels = [
-    'department_page_test' => t('Same as Department page (test)'),
-    'department_page_test_1col' => t('1 column'),
-    'department_page_test_2col' => t('2 columns'),
-    'department_page_test_3col' => t('3 columns'),
+    'department_page_test' => t('Department landing page'),
+    'department_page_test_1col' => t('1 column content'),
+    'department_page_test_2col' => t('2 column content'),
+    'department_page_test_3col' => t('3 column content'),
   ];
   foreach (hkcec_gutenberg_modern_blocks_department_list_bundles() as $id) {
     $bundles[] = [
@@ -333,6 +338,9 @@ function hkcec_gutenberg_modern_blocks_alter_department_child_form(array &$form,
     'createUrl' => Url::fromRoute('hkcec_gutenberg_modern_blocks.department_child_create')->toString(),
     'listUrl' => $parent_id
       ? Url::fromRoute('hkcec_gutenberg_modern_blocks.department_child_list', ['node' => $parent_id])->toString()
+      : '',
+    'attachUrl' => $parent_id
+      ? Url::fromRoute('hkcec_gutenberg_modern_blocks.department_child_attach', ['node' => $parent_id])->toString()
       : '',
     'token' => \Drupal::csrfToken()->get('hkcec-department-child'),
     'bundles' => $bundles,

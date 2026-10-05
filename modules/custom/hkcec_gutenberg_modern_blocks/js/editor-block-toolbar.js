@@ -257,6 +257,7 @@
     var busyState = wp.element.useState(false);
     var messageState = wp.element.useState('');
     var pagesState = wp.element.useState([]);
+    var filterState = wp.element.useState('');
     var open = openState[0];
     var setOpen = openState[1];
     var title = titleState[0];
@@ -269,15 +270,17 @@
     var setMessage = messageState[1];
     var pages = pagesState[0];
     var setPages = pagesState[1];
+    var filter = filterState[0];
+    var setFilter = filterState[1];
     var settings = childSettings();
     if (!settings || !wp.blockEditor || !wp.blockEditor.BlockControls) {
       return null;
     }
 
-    function post(payload) {
+    function post(url, payload) {
       setBusy(true);
       setMessage('');
-      return fetch(settings.createUrl, {
+      return fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -333,6 +336,7 @@
       }
       setMessage('');
       setPages([]);
+      setFilter('');
       setOpen('choose');
       fetch(settings.listUrl, {
         credentials: 'same-origin',
@@ -376,27 +380,57 @@
             return el('option', { key: item.id, value: item.id }, item.label);
           })),
         ]
-        : [
-          pages.length
-            ? el('div', { key: 'pages' }, pages.map(function (page) {
-              return el(wp.components.Button, {
-                key: String(page.nid),
-                variant: 'secondary',
-                onClick: function () {
-                  applyLink(page);
-                },
-              }, page.title);
-            }))
-            : el('p', { key: 'none' }, t('No pages under this department yet.')),
-        ];
+        : (function () {
+          var query = filter.trim().toLowerCase();
+          var shown = pages.filter(function (page) {
+            return !query || String(page.title || '').toLowerCase().indexOf(query) !== -1;
+          });
+          return [
+            el('label', { key: 'find-label', htmlFor: 'hkcec-child-find' }, t('Find a page')),
+            el('input', {
+              key: 'find',
+              id: 'hkcec-child-find',
+              type: 'text',
+              value: filter,
+              onChange: function (event) {
+                setFilter(event.target.value);
+              },
+            }),
+            shown.length
+              ? el('div', { key: 'pages', className: 'hkcec-child-pages' }, shown.map(function (page) {
+                var note = page.underThis
+                  ? t('Already under this page')
+                  : (page.hasParent ? t('Move under this page') : t('Place under this page'));
+                return el(wp.components.Button, {
+                  key: String(page.nid),
+                  className: 'hkcec-child-page',
+                  variant: 'secondary',
+                  disabled: busy,
+                  onClick: function () {
+                    if (page.underThis || !settings.attachUrl) {
+                      applyLink(page);
+                      return;
+                    }
+                    post(settings.attachUrl, { child: page.nid }).then(function (data) {
+                      applyLink(data || page);
+                    });
+                  },
+                }, page.title + ' — ' + note);
+              }))
+              : el('p', { key: 'none' }, pages.length
+                ? t('No page matches that name.')
+                : t('No other department pages to choose yet.')),
+          ];
+        })();
       modal = el(wp.components.Modal, {
         title: open === 'create' ? t('Create page') : t('Choose existing page'),
+        className: 'hkcec-child-modal',
         onRequestClose: function () {
           if (!busy) {
             setOpen('');
           }
         },
-      }, body.concat([
+      }, el('div', { className: 'hkcec-child-dialog' }, body.concat([
         message ? el('p', { key: 'message' }, message) : null,
         open === 'create'
           ? el(wp.components.Button, {
@@ -404,7 +438,7 @@
             variant: 'primary',
             disabled: busy || !title,
             onClick: function () {
-              post({
+              post(settings.createUrl, {
                 parent: settings.parentNid,
                 title: title,
                 bundle: bundle,
@@ -412,25 +446,23 @@
             },
           }, busy ? t('Creating…') : t('Create page'))
           : null,
-      ]));
+      ])));
     }
 
     return el(wp.element.Fragment, null,
       el(wp.blockEditor.BlockControls, { group: 'block' },
         el(wp.components.ToolbarButton, {
-          className: 'hkcec-block-tool',
+          className: 'hkcec-block-tool hkcec-child-action',
           label: t('Create page'),
-          title: t('Create page'),
-          icon: iconLetter('P'),
+          showTooltip: true,
           onClick: openCreate,
-        }),
+        }, t('Create page')),
         el(wp.components.ToolbarButton, {
-          className: 'hkcec-block-tool',
+          className: 'hkcec-block-tool hkcec-child-action',
           label: t('Choose existing page'),
-          title: t('Choose existing page'),
-          icon: iconLetter('E'),
+          showTooltip: true,
           onClick: openChoose,
-        })
+        }, t('Choose existing page'))
       ),
       modal
     );
@@ -581,6 +613,20 @@
           { label: t('75%'), value: 75 },
           { label: t('100%'), value: 100 },
         ], attrs.width || 0, function (value) {
+          props.setAttributes({ width: value || undefined });
+        }),
+      ];
+    }
+    if (name === 'core/column') {
+      return [
+        menu('column-width', t('Width'), [
+          { label: t('Equal'), value: '' },
+          { label: t('25%'), value: '25%' },
+          { label: t('33%'), value: '33%' },
+          { label: t('50%'), value: '50%' },
+          { label: t('67%'), value: '67%' },
+          { label: t('75%'), value: '75%' },
+        ], attrs.width || '', function (value) {
           props.setAttributes({ width: value || undefined });
         }),
       ];
@@ -786,6 +832,338 @@
     return Object.assign({}, extraProps, { style: style });
   }
 
+  function isDepartmentEditor() {
+    var settings = window.drupalSettings && window.drupalSettings.hkcecDepartmentChild;
+    return !!(settings && settings.createUrl);
+  }
+
+  function classTokens(className) {
+    return String(className || '').split(/\s+/);
+  }
+
+  function blockHasClass(block, token) {
+    if (!block || !block.attributes) {
+      return false;
+    }
+    return classTokens(block.attributes.className).indexOf(token) !== -1;
+  }
+
+  function guidanceNotice(message) {
+    try {
+      var notices = window.wp.data.dispatch('core/notices');
+      if (notices && notices.createNotice) {
+        notices.createNotice('warning', message, { type: 'snackbar', isDismissible: true });
+      }
+    }
+    catch (e) {
+      // The editor stays usable when notices are unavailable.
+    }
+  }
+
+  function topicCardBlocks() {
+    var wp = window.wp;
+    var markup = window.hkcecTopicCardMarkup && window.hkcecTopicCardMarkup();
+    if (markup && wp.blocks.parse) {
+      var parsed = wp.blocks.parse(markup);
+      if (parsed && parsed.length) {
+        return parsed[0];
+      }
+    }
+    var item = wp.blocks.createBlock('core/list-item', { content: 'First line' });
+    var list = wp.blocks.createBlock('core/list', {}, [item]);
+    var heading = wp.blocks.createBlock('core/heading', { level: 3, content: 'New topic' });
+    return wp.blocks.createBlock('core/group', { className: 'hkcec-origin-card' }, [heading, list]);
+  }
+
+  function selectedCardId() {
+    var select = window.wp.data.select('core/block-editor');
+    var current = select.getSelectedBlockClientId();
+    while (current) {
+      var block = select.getBlock(current);
+      if (block && block.name === 'core/group' && blockHasClass(block, 'hkcec-origin-card')) {
+        return current;
+      }
+      current = select.getBlockRootClientId(current);
+    }
+    return '';
+  }
+
+  function lastCardColumn() {
+    var select = window.wp.data.select('core/block-editor');
+    var found = null;
+    var main = null;
+    function walk(blocks) {
+      (blocks || []).forEach(function (block) {
+        var className = block.attributes && block.attributes.className;
+        if (block.name === 'core/columns' && classTokens(className).some(function (token) {
+          return token.indexOf('hkcec-origin-cards') === 0;
+        })) {
+          var columns = block.innerBlocks || [];
+          if (columns.length) {
+            found = columns[columns.length - 1];
+          }
+        }
+        if (block.name === 'core/column' && blockHasClass(block, 'hkcec-dept-main')) {
+          main = block;
+        }
+        walk(block.innerBlocks);
+      });
+    }
+    walk(select.getBlocks());
+    return found || main;
+  }
+
+  function addTopicCard() {
+    var wp = window.wp;
+    if (!wp || !wp.blocks || !wp.data) {
+      guidanceNotice(t('The topic card could not be added.'));
+      return;
+    }
+    try {
+      var card = topicCardBlocks();
+      if (!card) {
+        guidanceNotice(t('The topic card could not be added.'));
+        return;
+      }
+      var select = wp.data.select('core/block-editor');
+      var dispatch = wp.data.dispatch('core/block-editor');
+      var cardId = selectedCardId();
+      if (cardId) {
+        var parentId = select.getBlockRootClientId(cardId);
+        var order = select.getBlockOrder(parentId);
+        var index = order.indexOf(cardId);
+        dispatch.insertBlock(card, index + 1, parentId || undefined);
+      }
+      else {
+        var column = lastCardColumn();
+        if (!column) {
+          dispatch.insertBlock(card);
+        }
+        else {
+          dispatch.insertBlock(card, (column.innerBlocks || []).length, column.clientId);
+        }
+      }
+      if (card.clientId) {
+        dispatch.selectBlock(card.clientId);
+      }
+    }
+    catch (e) {
+      guidanceNotice(t('The topic card could not be added.'));
+    }
+  }
+
+  function setPhonePreview(enabled) {
+    window.hkcecPhonePreview = !!enabled;
+    applyPhonePreview();
+  }
+
+  function applyPhonePreview() {
+    var enabled = !!window.hkcecPhonePreview;
+    var wrappers = document.querySelectorAll('.editor-styles-wrapper');
+    var i;
+    for (i = 0; i < wrappers.length; i++) {
+      wrappers[i].classList.toggle('hkcec-phone-preview', enabled);
+    }
+    var frames = document.querySelectorAll('iframe');
+    for (i = 0; i < frames.length; i++) {
+      try {
+        var inner = frames[i].contentDocument && frames[i].contentDocument.querySelector('.editor-styles-wrapper');
+        if (inner) {
+          inner.classList.toggle('hkcec-phone-preview', enabled);
+        }
+      }
+      catch (e) {
+        // A cross-origin frame is left unchanged.
+      }
+    }
+    var phone = document.querySelector('.hkcec-guidance-phone');
+    var desktop = document.querySelector('.hkcec-guidance-desktop');
+    if (phone) {
+      phone.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    }
+    if (desktop) {
+      desktop.setAttribute('aria-pressed', enabled ? 'false' : 'true');
+    }
+  }
+
+  function mountGuidance() {
+    if (!isDepartmentEditor() || document.querySelector('.hkcec-guidance')) {
+      return;
+    }
+    var editorRoot = document.querySelector('[id^="editor-edit-body"]');
+    var host = document.getElementById('edit-body-wrapper')
+      || (editorRoot && editorRoot.parentElement)
+      || document.querySelector('.edit-post-header-toolbar__left')
+      || document.querySelector('.editor-document-tools')
+      || document.querySelector('.edit-post-header-toolbar')
+      || document.querySelector('[aria-label="Editor top bar"]');
+    if (!host) {
+      return;
+    }
+    var bar = document.createElement('div');
+    bar.className = 'hkcec-guidance';
+    function button(className, label, pressed) {
+      var node = document.createElement('button');
+      node.type = 'button';
+      node.className = 'components-button is-secondary hkcec-guidance-button ' + className;
+      node.textContent = label;
+      if (pressed !== undefined) {
+        node.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      }
+      return node;
+    }
+    var add = button('hkcec-guidance-add', t('Add a topic card'));
+    var desktop = button('hkcec-guidance-desktop', t('Desktop'), true);
+    var phone = button('hkcec-guidance-phone', t('Phone'), false);
+    add.addEventListener('click', function () {
+      addTopicCard();
+    });
+    desktop.addEventListener('click', function () {
+      setPhonePreview(false);
+    });
+    phone.addEventListener('click', function () {
+      setPhonePreview(true);
+    });
+    bar.appendChild(add);
+    bar.appendChild(desktop);
+    bar.appendChild(phone);
+    if (editorRoot && host.contains(editorRoot)) {
+      host.insertBefore(bar, editorRoot);
+    }
+    else {
+      host.appendChild(bar);
+    }
+  }
+
+  function outlineName(clientId) {
+    var select = window.wp.data.select('core/block-editor');
+    var block = select.getBlock(clientId);
+    if (!block) {
+      return '';
+    }
+    if (block.name === 'core/group' && blockHasClass(block, 'hkcec-origin-card')) {
+      return t('Topic card');
+    }
+    if (block.name === 'core/list-item') {
+      return t('List line');
+    }
+    if (block.name === 'core/list') {
+      var parentId = select.getBlockRootClientId(clientId);
+      var parent = parentId && select.getBlock(parentId);
+      if (parent && parent.name === 'core/group' && blockHasClass(parent, 'hkcec-origin-card')) {
+        return t('Card list');
+      }
+    }
+    return '';
+  }
+
+  function paintOutline() {
+    if (!isDepartmentEditor() || !window.wp || !window.wp.data) {
+      return;
+    }
+    var rows = document.querySelectorAll('.block-editor-list-view-block[data-block], .block-editor-list-view-leaf[data-block]');
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var id = rows[i].getAttribute('data-block');
+      var label = id && outlineName(id);
+      if (!label) {
+        continue;
+      }
+      var title = rows[i].querySelector('.block-editor-list-view-block-select-button__title');
+      if (title && title.textContent !== label) {
+        title.textContent = label;
+      }
+      var selectLink = rows[i].querySelector('.block-editor-list-view-block-select-button');
+      if (selectLink && selectLink.getAttribute('aria-label') !== label) {
+        selectLink.setAttribute('aria-label', label);
+      }
+    }
+  }
+
+  function installOutlineLabels() {
+    var wp = window.wp;
+    if (!wp || !wp.blocks || !wp.blocks.getBlockType) {
+      return;
+    }
+    function wrap(name, custom) {
+      try {
+        var type = wp.blocks.getBlockType(name);
+        if (!type || type.hkcecLabelWrapped) {
+          return;
+        }
+        var previous = type.__experimentalLabel;
+        type.__experimentalLabel = function (attributes) {
+          if (!isDepartmentEditor()) {
+            return previous ? previous(attributes) : undefined;
+          }
+          var label = custom(attributes);
+          if (label) {
+            return label;
+          }
+          return previous ? previous(attributes) : undefined;
+        };
+        type.hkcecLabelWrapped = true;
+      }
+      catch (e) {
+        // A frozen block type keeps the default outline name.
+      }
+    }
+    wrap('core/group', function (attributes) {
+      if (classTokens(attributes && attributes.className).indexOf('hkcec-origin-card') !== -1) {
+        return t('Topic card');
+      }
+      return '';
+    });
+    wrap('core/list-item', function () {
+      return t('List line');
+    });
+  }
+
+  var outlineQueued = false;
+  function watchOutline() {
+    var wp = window.wp;
+    if (!wp || !wp.data || typeof wp.data.subscribe !== 'function' || window.hkcecOutlineWatch) {
+      return;
+    }
+    window.hkcecOutlineWatch = true;
+    var editorRoot = document.getElementById('editor-edit-body-0-value') || document.body;
+    if (!window.hkcecOutlineObserver && editorRoot) {
+      window.hkcecOutlineObserver = new MutationObserver(function () {
+        if (outlineQueued || !isDepartmentEditor()) {
+          return;
+        }
+        outlineQueued = true;
+        window.requestAnimationFrame(function () {
+          outlineQueued = false;
+          try {
+            paintOutline();
+            applyPhonePreview();
+          }
+          catch (e) {
+            // Outline names and the phone preview are optional.
+          }
+        });
+      });
+      window.hkcecOutlineObserver.observe(editorRoot, { childList: true, subtree: true });
+    }
+    wp.data.subscribe(function () {
+      if (outlineQueued || !isDepartmentEditor()) {
+        return;
+      }
+      outlineQueued = true;
+      window.requestAnimationFrame(function () {
+        outlineQueued = false;
+        try {
+          paintOutline();
+          applyPhonePreview();
+        }
+        catch (e) {
+          // Outline names and the phone preview are optional.
+        }
+      });
+    });
+  }
+
   function boot() {
     var wp = window.wp;
     if (!wp || !wp.hooks || typeof wp.hooks.addFilter !== 'function' || !wp.element || !wp.components) {
@@ -800,6 +1178,9 @@
     try {
       wp.hooks.addFilter('editor.BlockEdit', 'hkcec/block-toolbar', withBlockToolbar);
       wp.hooks.addFilter('blocks.getSaveContent.extraProps', 'hkcec/list-marker', listSaveProps);
+      installOutlineLabels();
+      watchOutline();
+      mountGuidance();
       window.hkcecBlockToolbarRegistered = true;
       return true;
     }
@@ -816,7 +1197,15 @@
     catch (e) {
       ready = false;
     }
-    if (!ready && attempt < 40) {
+    if (ready && isDepartmentEditor() && !document.querySelector('.hkcec-guidance')) {
+      try {
+        mountGuidance();
+      }
+      catch (e) {
+        // The header can appear after the editor script.
+      }
+    }
+    if (attempt < 40 && (!ready || (isDepartmentEditor() && !document.querySelector('.hkcec-guidance')))) {
       window.setTimeout(function () {
         schedule(attempt + 1);
       }, 250);
@@ -829,6 +1218,12 @@
     Drupal.behaviors.hkcecBlockToolbar = {
       attach: function () {
         schedule(0);
+        try {
+          mountGuidance();
+        }
+        catch (e) {
+          // The rest of the editor stays usable.
+        }
       },
     };
   }

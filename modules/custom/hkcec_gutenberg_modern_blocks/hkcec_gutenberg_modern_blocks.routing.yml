@@ -18,3 +18,16 @@ hkcec_gutenberg_modern_blocks.department_child_list:
     parameters:
       node:
         type: entity:node
+
+hkcec_gutenberg_modern_blocks.department_child_attach:
+  path: '/hkcec/department-child/{node}/attach'
+  defaults:
+    _controller: '\Drupal\hkcec_gutenberg_modern_blocks\Controller\DepartmentChildController::attachChild'
+  methods: [POST]
+  requirements:
+    _entity_access: 'node.update'
+    node: \d+
+  options:
+    parameters:
+      node:
+        type: entity:node

@@ -52,6 +52,16 @@ function hkcec_gutenberg_modern_blocks_update_9005(): void {
 }
 
 /**
+ * Rename the homepage and department content type labels.
+ *
+ * Machine names stay the same, so existing pages, fields, and editor
+ * settings keep working.
+ */
+function hkcec_gutenberg_modern_blocks_update_9006(): void {
+  hkcec_gutenberg_modern_blocks_apply_delivered_setup();
+}
+
+/**
  * Create the editor setup shipped with this module.
  *
  * Starter pages are added only when a content type has none yet. Existing

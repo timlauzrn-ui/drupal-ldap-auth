@@ -55,6 +55,10 @@
       }
     }
 
+    window.hkcecTopicCardMarkup = function () {
+      return deptCard('New topic', ['First line']);
+    };
+
     function deptCard(title, items) {
       const list = items.map(function (item) {
         return '<li>' + item + '</li>';

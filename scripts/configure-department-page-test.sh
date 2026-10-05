@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create Department page (test): origin Gutenberg blocks only, Patterns available.
+# Create Department landing page: origin Gutenberg blocks only, Patterns available.
 set -euo pipefail
 
 CONTAINER="${CONTAINER:-my-drupal}"
@@ -30,7 +30,7 @@ $fc = "Drupal\\field\\Entity\\FieldConfig";
 if (!$nt::load("department_page_test")) {
   $nt::create([
     "type" => "department_page_test",
-    "name" => "Department page (test)",
+    "name" => "Department landing page",
     "description" => "Same layout as Department page using origin Gutenberg blocks only.",
     "new_revision" => TRUE,
     "display_submitted" => FALSE,
@@ -185,4 +185,4 @@ echo "SAMPLE_CREATED nid=" . $node->id() . " alias=" . $alias . "\n";
 '
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush cr
-echo "Department page (test) ready: http://localhost:8080/node/add/department_page_test"
+echo "Department landing page ready: http://localhost:8080/node/add/department_page_test"

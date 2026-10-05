@@ -80,11 +80,11 @@ echo "==> Configuring intranet landing + department Gutenberg templates..."
 chmod +x "${SCRIPT_DIR}/configure-intranet-templates.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-intranet-templates.sh"
 
-echo "==> Configuring Department page (test) with Gutenberg origin blocks..."
+echo "==> Configuring Department landing page with Gutenberg origin blocks..."
 chmod +x "${SCRIPT_DIR}/configure-department-page-test.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-department-page-test.sh"
 
-echo "==> Configuring Homepage (test) with Gutenberg origin blocks..."
+echo "==> Configuring Homepage with Gutenberg origin blocks..."
 chmod +x "${SCRIPT_DIR}/configure-homepage-test.sh"
 CONTAINER="${CONTAINER}" "${SCRIPT_DIR}/configure-homepage-test.sh"
 

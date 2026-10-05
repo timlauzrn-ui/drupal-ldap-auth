@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create Homepage (test): origin Gutenberg blocks only (same idea as department_page_test).
+# Create Homepage: origin Gutenberg blocks only (same idea as department_page_test).
 set -euo pipefail
 
 CONTAINER="${CONTAINER:-my-drupal}"
@@ -30,7 +30,7 @@ $fc = "Drupal\\field\\Entity\\FieldConfig";
 if (!$nt::load("homepage_test")) {
   $nt::create([
     "type" => "homepage_test",
-    "name" => "Homepage (test)",
+    "name" => "Homepage",
     "description" => "Same layout as Basic page (banner, four resource cards, Hot News) using origin Gutenberg blocks only.",
     "new_revision" => TRUE,
     "display_submitted" => FALSE,
@@ -194,4 +194,4 @@ echo "SAMPLE_CREATED nid=" . $node->id() . " alias=" . $alias . "\n";
 '
 
 docker exec -u www-data -w /opt/drupal "${CONTAINER}" vendor/bin/drush cr
-echo "Homepage (test) ready: http://localhost:8080/node/add/homepage_test"
+echo "Homepage ready: http://localhost:8080/node/add/homepage_test"

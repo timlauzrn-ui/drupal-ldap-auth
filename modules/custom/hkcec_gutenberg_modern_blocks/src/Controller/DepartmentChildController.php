@@ -88,22 +88,51 @@ final class DepartmentChildController extends ControllerBase {
   }
 
   /**
-   * Pages that already belong to this department page.
+   * Department pages that can be linked from this page.
+   *
+   * Includes pages that are not under this department yet, so an editor can
+   * choose a page they created on their own.
    */
   public function listChildren(NodeInterface $node): JsonResponse {
     try {
       if (!in_array($node->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
         return new JsonResponse(['ok' => TRUE, 'pages' => []]);
       }
+      if (!\Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_parent_department')) {
+        return new JsonResponse(['ok' => TRUE, 'pages' => []]);
+      }
+      $ids = $this->entityTypeManager()->getStorage('node')->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('type', hkcec_gutenberg_modern_blocks_department_list_bundles(), 'IN')
+        ->condition('nid', (int) $node->id(), '<>')
+        ->sort('title')
+        ->range(0, 200)
+        ->execute();
       $pages = [];
-      foreach (hkcec_gutenberg_modern_blocks_department_children($node) as $child) {
-        if (!$child->access('view')) {
+      $parent_id = (int) $node->id();
+      foreach ($this->entityTypeManager()->getStorage('node')->loadMultiple($ids) as $child) {
+        if (!$child instanceof NodeInterface) {
+          continue;
+        }
+        if (hkcec_gutenberg_modern_blocks_parent_would_cycle($child, $parent_id)) {
+          continue;
+        }
+        $current = $child->hasField('field_parent_department') && !$child->get('field_parent_department')->isEmpty()
+          ? (int) $child->get('field_parent_department')->target_id
+          : 0;
+        $under_this = $current === $parent_id;
+        if (!$under_this && !$child->access('update')) {
+          continue;
+        }
+        if ($under_this && !$child->access('view')) {
           continue;
         }
         $pages[] = [
           'nid' => (int) $child->id(),
           'title' => $child->label(),
           'url' => $child->toUrl()->toString(),
+          'underThis' => $under_this,
+          'hasParent' => $current > 0 && !$under_this,
         ];
       }
       return new JsonResponse(['ok' => TRUE, 'pages' => $pages]);
@@ -113,6 +142,53 @@ final class DepartmentChildController extends ControllerBase {
         '@message' => $e->getMessage(),
       ]);
       return $this->fail('The child pages could not be loaded.', 500);
+    }
+  }
+
+  /**
+   * Store an existing page under this department page.
+   */
+  public function attachChild(NodeInterface $node, Request $request): JsonResponse {
+    try {
+      $token = (string) $request->headers->get('X-CSRF-Token');
+      if (!\Drupal::csrfToken()->validate($token, 'hkcec-department-child')) {
+        return $this->fail('Reload the editor and try again.', 403);
+      }
+      if (!in_array($node->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+        return $this->fail('Save this department page before choosing a child page.', 400);
+      }
+      if (!$node->access('update')) {
+        return $this->fail('You do not have permission to update this department page.', 403);
+      }
+      $payload = json_decode((string) $request->getContent(), TRUE);
+      $child_id = is_array($payload) ? (int) ($payload['child'] ?? 0) : 0;
+      $child = $child_id > 0 ? $this->entityTypeManager()->getStorage('node')->load($child_id) : NULL;
+      if (!$child instanceof NodeInterface || !in_array($child->bundle(), hkcec_gutenberg_modern_blocks_department_list_bundles(), TRUE)) {
+        return $this->fail('That page could not be chosen.', 400);
+      }
+      if (!$child->access('update')) {
+        return $this->fail('You do not have permission to update that page.', 403);
+      }
+      if (!$child->hasField('field_parent_department')) {
+        return $this->fail('Parent department is not available yet. Reload the site and try again.', 500);
+      }
+      if (hkcec_gutenberg_modern_blocks_parent_would_cycle($child, (int) $node->id())) {
+        return $this->fail('That page cannot sit under this one.', 400);
+      }
+      $child->set('field_parent_department', $node->id());
+      $child->save();
+      return new JsonResponse([
+        'ok' => TRUE,
+        'nid' => (int) $child->id(),
+        'title' => $child->label(),
+        'url' => $child->toUrl()->toString(),
+      ]);
+    }
+    catch (\Throwable $e) {
+      $this->getLogger('hkcec_gutenberg_modern_blocks')->error('Department child page was not attached: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      return $this->fail('That page could not be chosen.', 500);
     }
   }
 

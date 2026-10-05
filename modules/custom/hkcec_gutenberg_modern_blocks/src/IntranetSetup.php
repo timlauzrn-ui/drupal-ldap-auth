@@ -118,24 +118,24 @@ final class IntranetSetup {
         'description' => 'HR / Finance / MIS style content pages.',
       ],
       'department_page_test' => [
-        'name' => 'Department page (test)',
-        'description' => 'Same layout as Department page using origin Gutenberg blocks only.',
+        'name' => 'Department landing page',
+        'description' => 'Department landing page using origin Gutenberg blocks.',
       ],
       'department_page_test_1col' => [
-        'name' => 'Department page (test) — 1 column',
-        'description' => 'Department page (test) with topic cards in one column.',
+        'name' => '1 column content',
+        'description' => 'Department content with topic cards in one column.',
       ],
       'department_page_test_2col' => [
-        'name' => 'Department page (test) — 2 columns',
-        'description' => 'Department page (test) with topic cards in two columns.',
+        'name' => '2 column content',
+        'description' => 'Department content with topic cards in two columns.',
       ],
       'department_page_test_3col' => [
-        'name' => 'Department page (test) — 3 columns',
-        'description' => 'Department page (test) with topic cards in three columns.',
+        'name' => '3 column content',
+        'description' => 'Department content with topic cards in three columns.',
       ],
       'homepage_test' => [
-        'name' => 'Homepage (test)',
-        'description' => 'Same layout as Basic page using origin Gutenberg blocks only.',
+        'name' => 'Homepage',
+        'description' => 'Homepage using origin Gutenberg blocks.',
       ],
     ];
     foreach ($bundles as $id => $info) {
@@ -151,6 +151,8 @@ final class IntranetSetup {
         $type->save();
       }
       else {
+        $type->set('name', $info['name']);
+        $type->set('description', $info['description']);
         $type->setDisplaySubmitted(FALSE);
         $type->save();
       }

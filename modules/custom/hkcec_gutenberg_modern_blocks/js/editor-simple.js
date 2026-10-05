@@ -35,7 +35,9 @@
   const FULL_WIDTH_CSS = [
     '.editor-styles-wrapper{--wp--style--global--content-size:100%;--wp--style--global--wide-size:100%;}',
     '.editor-styles-wrapper .is-root-container{max-width:none!important;width:100%!important;}',
-    'html :where(.wp-block),.wp-block,html :where(.wp-block)[data-align=wide]{max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important;}',
+    'html :where(.wp-block),.wp-block{max-width:none!important;}',
+    'html :where(.editor-styles-wrapper) .is-root-container>.wp-block:not(.wp-block-column):not(.is-resized){max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important;}',
+    '.editor-styles-wrapper .wp-block-column{width:auto!important;max-width:none!important;}',
     '.gb-ad-slider--editor,.gb-resource-grid--editor,.gb-hot-news--editor,.gb-dept-layout--editor,.gb-page-intro--editor{max-width:none!important;width:100%!important;box-sizing:border-box;}',
     '.gb-dept-layout.gb-dept-layout--editor{display:flex!important;flex-direction:column!important;grid-template-columns:none!important;}',
     '.gb-dept-layout__editor-grid{max-width:none!important;width:100%!important;}',
