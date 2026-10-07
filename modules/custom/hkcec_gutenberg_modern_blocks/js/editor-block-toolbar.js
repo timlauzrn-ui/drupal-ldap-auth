@@ -1,11 +1,11 @@
 /**
  * @file
- * Top-toolbar controls that follow the selected Gutenberg block.
+ * Block controls that sit on the selected Gutenberg block.
  *
- * Text formatting stays on the format bar. This file adds the controls that
- * belong to the block itself, in the same way Word changes the ribbon when
- * the selection changes. List markers are stored on the list block's type
- * attribute and written out as list-style-type when the post is saved.
+ * Text formatting stays on the format bar beside the selection. This file
+ * adds the controls that belong to the block itself. List markers are stored
+ * on the list block's type attribute and written out as list-style-type when
+ * the post is saved.
  */
 (function (Drupal) {
   'use strict';
@@ -86,7 +86,7 @@
     }
   }
 
-  function iconLetter(letter) {
+  function iconSvg(d) {
     var el = window.wp.element.createElement;
     return el(
       'svg',
@@ -98,20 +98,45 @@
         'aria-hidden': 'true',
         focusable: 'false',
       },
-      el(
-        'text',
-        {
-          x: '12',
-          y: '16',
-          textAnchor: 'middle',
-          fontSize: '11',
-          fontFamily: 'Arial, sans-serif',
-          fontWeight: '700',
-          fill: 'currentColor',
-        },
-        letter
-      )
+      el('path', { d: d, fill: 'currentColor' })
     );
+  }
+
+  var TOOL_ICONS = {
+    bullets: 'M7 6.5h12V8H7V6.5zM4 6.2a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zM7 11.2h12v1.5H7v-1.5zM4 11a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zM7 16h12v1.5H7V16zM4 15.7a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z',
+    numbering: 'M5.5 5h1.2v3.2H8V9.4H4.8V8.2h.7V5zM4.6 12.2h2.6l-2.5 3.2v.8h3.4v-1.2H5.6l2.5-3.2v-.8H4.6v1.2zM7 17.2H5.2L7 15h1.2l-1.8 2.2H9V18.4H4.8v-1.2H7zM10 6.5h10V8H10V6.5zM10 11.2h10v1.5H10v-1.5zM10 16h10v1.5H10V16z',
+    'line-spacing': 'M8 6h12v1.5H8V6zM8 11.2h12v1.5H8v-1.5zM8 16.5h12V18H8v-1.5zM5.2 4.2 3 6.8h1.4v3.2H3l2.2 2.6 2.2-2.6H6v-3.2h1.4L5.2 4.2z',
+    'drop-cap': 'M4 4h7v2.2H7.8V20H5.2V6.2H4V4zm9 6h7v1.6h-2.4V20h-2.2v-8.4H13V10z',
+    'image-size': 'M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm0 1.5v13h16v-13H4zm5 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM4 16.5l4-3 2 2 3-4 7 5v1.5H4v-1.5z',
+    spacer: 'M11.2 4h1.6v4.2H17L12 13 7 8.2h4.2V4zM7 15.5h10V17H7v-1.5zM7 18.5h10V20H7v-1.5z',
+    columns: 'M4 5h6v14H4V5zm10 0h6v14h-6V5z',
+    'details-open': 'M6.5 9.2 12 14.7l5.5-5.5 1.1 1.1L12 16.9 5.4 10.3l1.1-1.1z',
+    separator: 'M4 11.2h16v1.6H4v-1.6z',
+    'separator-weight': 'M4 8h16v1.2H4V8zm0 3.4h16V14H4v-2.6zm0 4.6h16v2H4v-2z',
+    'button-width': 'M4 9h16v6H4V9zm1.5 1.5v3h13v-3h-13zM2 8v8h1.5V8H2zm18.5 0v8H22V8h-1.5z',
+    'column-width': 'M3 6h4v12H3V6zm7 0h4v12h-4V6zm7 0h4v12h-4V6z',
+    'columns-align': 'M4 4h16v3H4V4zm2 6h12v3H6v-3zm-2 7h16v3H4v-3z',
+    stack: 'M6 5h12v4H6V5zm0 6h12v3H6v-3zm0 5h12v3H6v-3z',
+    'table-fixed': 'M4 5h16v14H4V5zm1.5 1.5V9h5.5V6.5H5.5zm7 0V9H18.5V6.5h-6zm-7 4V17.5h5.5v-7H5.5zm7 0v7H18.5v-7h-6z',
+    'media-side': 'M4 6h7v12H4V6zm9 0h7v12h-7V6z',
+    'media-align': 'M4 5h16v2.5H4V5zm0 5.5h10V13H4v-2.5zM4 16h16v2.5H4V16z',
+    download: 'M11.2 4h1.6v8.2H17L12 17.5 7 12.2h4.2V4zM5 19h14v1.5H5V19z',
+    'cover-position': 'M12 3.5 14.2 8l4.8.4-3.7 3.1 1.1 4.7L12 13.8 7.6 16.2l1.1-4.7L5 8.4 9.8 8 12 3.5z',
+    'video-autoplay': 'M8 6.5v11l9-5.5-9-5.5z',
+    'video-loop': 'M12 5a7 7 0 1 0 6.3 4H16v1.5h5V5.5h-1.5V8A8.5 8.5 0 1 1 12 3.5V5z',
+    'video-muted': 'M5 9h3.2L12 6.2v11.6L8.2 15H5V9zm9.2 1.2 1.6 1.6 1.6-1.6 1.1 1.1-1.6 1.6 1.6 1.6-1.1 1.1-1.6-1.6-1.6 1.6-1.1-1.1 1.6-1.6-1.6-1.6 1.1-1.1z',
+    'audio-autoplay': 'M8 6.5v11l9-5.5-9-5.5z',
+    'audio-loop': 'M12 5a7 7 0 1 0 6.3 4H16v1.5h5V5.5h-1.5V8A8.5 8.5 0 1 1 12 3.5V5z',
+    'code-size': 'M8.5 4.5h-2L2 16h2l1-2.8h5L11 16h2L8.5 4.5zM6.2 11.2L7.5 7.2l1.3 4H6.2zM15 7h6v1.5h-2.25V16h-1.5V8.5H15V7z',
+    'group-tag': 'M4 6h16v12H4V6zm1.5 1.5v9h13v-9h-13z',
+    align: 'M13 5.5H4V4h9v1.5Zm7 7H4V11h16v1.5Zm-7 7H4V18h9v1.5Z',
+    'align-left': 'M13 5.5H4V4h9v1.5Zm7 7H4V11h16v1.5Zm-7 7H4V18h9v1.5Z',
+    'align-center': 'M7.5 5.5h9V4h-9v1.5Zm-3.5 7h16V11H4v1.5Zm3.5 7h9V18h-9v1.5Z',
+    'align-right': 'M11.111 5.5H20V4h-8.889v1.5ZM4 12.5h16V11H4v1.5Zm7.111 7H20V18h-8.889v1.5Z',
+  };
+
+  function toolIcon(key) {
+    return iconSvg(TOOL_ICONS[key] || TOOL_ICONS.separator);
   }
 
   function safe(fn) {
@@ -131,11 +156,12 @@
       key: key,
       className: 'hkcec-block-tool',
       label: label,
-      icon: iconLetter(label.charAt(0)),
+      icon: toolIcon(key),
       popoverProps: { className: 'hkcec-word-popover', placement: 'bottom-start' },
       controls: choices.map(function (choice) {
         return {
           title: choice.label,
+          icon: choice.icon ? iconSvg(TOOL_ICONS[choice.icon] || choice.icon) : undefined,
           isActive: choice.value === current,
           onClick: safe(function () {
             onPick(choice.value);
@@ -152,7 +178,7 @@
       className: 'hkcec-block-tool',
       label: label,
       title: label,
-      icon: iconLetter(label.charAt(0)),
+      icon: toolIcon(key),
       isPressed: !!pressed,
       onClick: safe(onClick),
     });
@@ -232,6 +258,211 @@
     return holder.innerHTML;
   }
 
+  function escapeHtml(text) {
+    var holder = document.createElement('div');
+    holder.textContent = text || '';
+    return holder.innerHTML;
+  }
+
+  function layoutKind(id) {
+    var name = String(id || '');
+    if (name.indexOf('_3col') !== -1) {
+      return 'three';
+    }
+    if (name.indexOf('_2col') !== -1) {
+      return 'two';
+    }
+    if (name.indexOf('_1col') !== -1) {
+      return 'one';
+    }
+    return 'landing';
+  }
+
+  function headingOnlyHtml(title) {
+    var safe = escapeHtml(title || '');
+    return '<!-- wp:heading {"level":2} -->\n<h2 class="wp-block-heading">' + safe + '</h2>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->';
+  }
+
+  function blockClassName(block) {
+    return String((block && block.attributes && block.attributes.className) || '');
+  }
+
+  function firstHeadingText(block) {
+    if (!block) {
+      return '';
+    }
+    if (block.name === 'core/heading') {
+      return plainText(block.attributes && block.attributes.content);
+    }
+    var children = block.innerBlocks || [];
+    var index;
+    for (index = 0; index < children.length; index += 1) {
+      var found = firstHeadingText(children[index]);
+      if (found) {
+        return found;
+      }
+    }
+    return '';
+  }
+
+  function findCardByTitle(blocks, title) {
+    var wanted = String(title || '').toLowerCase();
+    if (!wanted) {
+      return null;
+    }
+    var index;
+    for (index = 0; index < blocks.length; index += 1) {
+      var block = blocks[index];
+      var className = blockClassName(block);
+      if (className.indexOf('hkcec-origin-card') !== -1 && firstHeadingText(block).toLowerCase() === wanted) {
+        return block;
+      }
+      var nested = findCardByTitle(block.innerBlocks || [], title);
+      if (nested) {
+        return nested;
+      }
+    }
+    return null;
+  }
+
+  function copyBlock(block) {
+    var wp = window.wp;
+    return wp.blocks.createBlock(
+      block.name,
+      Object.assign({}, block.attributes || {}),
+      (block.innerBlocks || []).map(copyBlock)
+    );
+  }
+
+  function columnCount(bundle) {
+    var name = String(bundle || '');
+    if (name.indexOf('_3col') !== -1) {
+      return 3;
+    }
+    if (name.indexOf('_2col') !== -1) {
+      return 2;
+    }
+    if (name.indexOf('_1col') !== -1) {
+      return 1;
+    }
+    return 0;
+  }
+
+  function topicLayout(card, bundle) {
+    var wp = window.wp;
+    var count = columnCount(bundle);
+    var topic = copyBlock(card);
+    if (!count) {
+      return [topic];
+    }
+    var width = count === 1 ? '100%' : (count === 2 ? '50%' : '33.33%');
+    var columns = [];
+    var index;
+    for (index = 0; index < count; index += 1) {
+      var inner = index === 0
+        ? [topic]
+        : [wp.blocks.createBlock('core/paragraph', { content: '' })];
+      columns.push(wp.blocks.createBlock('core/column', { width: width }, inner));
+    }
+    return [wp.blocks.createBlock('core/columns', {
+      className: 'hkcec-origin-cards-' + count,
+    }, columns)];
+  }
+
+  function emptyLayout(bundle) {
+    var wp = window.wp;
+    var count = columnCount(bundle);
+    if (!count) {
+      return [wp.blocks.createBlock('core/paragraph', { content: '' })];
+    }
+    var width = count === 1 ? '100%' : (count === 2 ? '50%' : '33.33%');
+    var columns = [];
+    var index;
+    for (index = 0; index < count; index += 1) {
+      columns.push(wp.blocks.createBlock('core/column', { width: width }, [
+        wp.blocks.createBlock('core/paragraph', { content: '' }),
+      ]));
+    }
+    return [wp.blocks.createBlock('core/columns', {
+      className: 'hkcec-origin-cards-' + count,
+    }, columns)];
+  }
+
+  function shellWithMain(blocks, inner) {
+    var wp = window.wp;
+    var replaced = false;
+    function walk(list) {
+      return list.map(function (block) {
+        var next = walk(block.innerBlocks || []);
+        if (blockClassName(block).indexOf('hkcec-dept-main') !== -1) {
+          next = inner;
+          replaced = true;
+        }
+        return wp.blocks.createBlock(
+          block.name,
+          Object.assign({}, block.attributes || {}),
+          next
+        );
+      });
+    }
+    var tree = walk(blocks || []);
+    return replaced ? tree : null;
+  }
+
+  function sectionHtml(clientId, title, bundle) {
+    var line = plainText(title);
+    try {
+      var wp = window.wp;
+      var editor = wp.data.select('core/block-editor');
+      var parents = editor.getBlockParents(clientId) || [];
+      var insideNav = false;
+      var insideCard = null;
+      var index;
+      for (index = 0; index < parents.length; index += 1) {
+        var parent = editor.getBlock(parents[index]);
+        var className = blockClassName(parent);
+        if (className.indexOf('hkcec-dept-nav') !== -1) {
+          insideNav = true;
+        }
+        if (className.indexOf('hkcec-origin-card') !== -1) {
+          insideCard = parent;
+        }
+      }
+      var card = null;
+      if (insideNav) {
+        card = findCardByTitle(editor.getBlocks(), line);
+      }
+      else if (insideCard && firstHeadingText(insideCard).toLowerCase() === line.toLowerCase()) {
+        card = insideCard;
+      }
+      if (wp.blocks && typeof wp.blocks.serialize === 'function' && typeof wp.blocks.createBlock === 'function') {
+        var inner = card ? topicLayout(card, bundle) : emptyLayout(bundle);
+        var shell = shellWithMain(editor.getBlocks(), inner);
+        var html = shell ? wp.blocks.serialize(shell) : '';
+        if (html && html.indexOf('hkcec-dept-main') !== -1 && html.indexOf('<!-- wp:') !== -1) {
+          return html;
+        }
+      }
+    }
+    catch (e) {
+      // A page with no department shell still gets a single heading.
+    }
+    return headingOnlyHtml(line);
+  }
+
+  function editorNeedsSave() {
+    try {
+      var editor = window.wp.data.select('core/editor');
+      if (editor && typeof editor.isEditedPostDirty === 'function') {
+        return !!editor.isEditedPostDirty();
+      }
+    }
+    catch (e) {
+      // Treat an unreadable editor as already saved.
+    }
+    return false;
+  }
+
   function notify(message, status) {
     try {
       var notices = window.wp.data.dispatch('core/notices');
@@ -272,6 +503,20 @@
     var setPages = pagesState[1];
     var filter = filterState[0];
     var setFilter = filterState[1];
+    wp.element.useEffect(function () {
+      if (open !== 'create') {
+        return undefined;
+      }
+      var timer = window.setTimeout(function () {
+        var field = document.getElementById('hkcec-child-title');
+        if (field && typeof field.focus === 'function') {
+          field.focus();
+        }
+      }, 40);
+      return function () {
+        window.clearTimeout(timer);
+      };
+    }, [open]);
     var settings = childSettings();
     if (!settings || !wp.blockEditor || !wp.blockEditor.BlockControls) {
       return null;
@@ -315,7 +560,11 @@
         content: linkHtml(data.url, data.title || title || plainText(props.attributes && props.attributes.content)),
       });
       setOpen('');
-      notify(t('The list line now opens the child page.'), 'success');
+      window.setTimeout(function () {
+        if (editorNeedsSave()) {
+          notify(t('Save this page or the link will not appear outside the editor. Leaving without saving drops this change.'), 'warning');
+        }
+      }, 50);
     }
 
     function openCreate() {
@@ -362,22 +611,40 @@
           el('input', {
             key: 'title',
             id: 'hkcec-child-title',
+            className: 'hkcec-child-title',
             type: 'text',
             value: title,
             onChange: function (event) {
               setTitle(event.target.value);
             },
           }),
-          el('label', { key: 'layout-label', htmlFor: 'hkcec-child-layout' }, t('Layout')),
-          el('select', {
-            key: 'layout',
-            id: 'hkcec-child-layout',
-            value: bundle,
-            onChange: function (event) {
-              setBundle(event.target.value);
-            },
+          el('p', { key: 'hint', className: 'hkcec-child-hint' }, t('This line becomes a link to the new page.')),
+          el('p', { key: 'layout-label', className: 'hkcec-child-section', id: 'hkcec-child-layout-label' }, t('Layout')),
+          el('div', {
+            key: 'layouts',
+            className: 'hkcec-child-layouts',
+            role: 'group',
+            'aria-labelledby': 'hkcec-child-layout-label',
           }, bundles.map(function (item) {
-            return el('option', { key: item.id, value: item.id }, item.label);
+            var kind = layoutKind(item.id);
+            var bars = kind === 'three' ? 3 : (kind === 'one' ? 1 : 2);
+            var preview = [];
+            var barIndex;
+            for (barIndex = 0; barIndex < bars; barIndex += 1) {
+              preview.push(el('span', { key: 'bar-' + barIndex }));
+            }
+            return el(wp.components.Button, {
+              key: item.id,
+              className: 'hkcec-child-layout',
+              isPressed: bundle === item.id,
+              'aria-pressed': bundle === item.id,
+              onClick: function () {
+                setBundle(item.id);
+              },
+            }, el('span', {
+              className: 'hkcec-layout-preview hkcec-layout-preview--' + kind,
+              'aria-hidden': 'true',
+            }, preview), el('span', { className: 'hkcec-child-layout-name' }, item.label));
           })),
         ]
         : (function () {
@@ -390,12 +657,15 @@
             el('input', {
               key: 'find',
               id: 'hkcec-child-find',
-              type: 'text',
+              className: 'hkcec-child-find',
+              type: 'search',
+              placeholder: t('Search pages'),
               value: filter,
               onChange: function (event) {
                 setFilter(event.target.value);
               },
             }),
+            message ? el('p', { key: 'message', className: 'hkcec-child-message' }, message) : null,
             shown.length
               ? el('div', { key: 'pages', className: 'hkcec-child-pages' }, shown.map(function (page) {
                 var note = page.underThis
@@ -404,7 +674,6 @@
                 return el(wp.components.Button, {
                   key: String(page.nid),
                   className: 'hkcec-child-page',
-                  variant: 'secondary',
                   disabled: busy,
                   onClick: function () {
                     if (page.underThis || !settings.attachUrl) {
@@ -415,54 +684,70 @@
                       applyLink(data || page);
                     });
                   },
-                }, page.title + ' — ' + note);
+                }, el('span', { className: 'hkcec-child-page-title' }, page.title), el('span', { className: 'hkcec-child-page-note' }, note));
               }))
-              : el('p', { key: 'none' }, pages.length
+              : el('p', { key: 'none', className: 'hkcec-child-empty' }, pages.length
                 ? t('No page matches that name.')
                 : t('No other department pages to choose yet.')),
           ];
         })();
+      var footer = open === 'create'
+        ? [
+          message ? el('p', { key: 'message', className: 'hkcec-child-message' }, message) : null,
+          el('div', { key: 'footer', className: 'hkcec-child-footer' }, [
+            el(wp.components.Button, {
+              key: 'cancel',
+              variant: 'tertiary',
+              disabled: busy,
+              onClick: function () {
+                if (!busy) {
+                  setOpen('');
+                }
+              },
+            }, t('Cancel')),
+            el(wp.components.Button, {
+              key: 'submit',
+              variant: 'primary',
+              disabled: busy || !String(title || '').trim(),
+              onClick: function () {
+                post(settings.createUrl, {
+                  parent: settings.parentNid,
+                  title: title,
+                  bundle: bundle,
+                  html: sectionHtml(props.clientId, title, bundle),
+                }).then(applyLink);
+              },
+            }, busy ? t('Creating…') : t('Create page')),
+          ]),
+        ]
+        : null;
       modal = el(wp.components.Modal, {
         title: open === 'create' ? t('Create page') : t('Choose existing page'),
-        className: 'hkcec-child-modal',
+        className: 'hkcec-child-modal' + (open === 'create' ? ' hkcec-child-modal--create' : ' hkcec-child-modal--choose'),
         onRequestClose: function () {
           if (!busy) {
             setOpen('');
           }
         },
-      }, el('div', { className: 'hkcec-child-dialog' }, body.concat([
-        message ? el('p', { key: 'message' }, message) : null,
-        open === 'create'
-          ? el(wp.components.Button, {
-            key: 'submit',
-            variant: 'primary',
-            disabled: busy || !title,
-            onClick: function () {
-              post(settings.createUrl, {
-                parent: settings.parentNid,
-                title: title,
-                bundle: bundle,
-              }).then(applyLink);
-            },
-          }, busy ? t('Creating…') : t('Create page'))
-          : null,
-      ])));
+      }, el('div', { className: 'hkcec-child-dialog' }, body.concat([footer])));
     }
 
     return el(wp.element.Fragment, null,
       el(wp.blockEditor.BlockControls, { group: 'block' },
         el(wp.components.ToolbarButton, {
           className: 'hkcec-block-tool hkcec-child-action',
+          icon: iconSvg('M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z'),
           label: t('Create page'),
           showTooltip: true,
           onClick: openCreate,
-        }, t('Create page')),
+        }),
         el(wp.components.ToolbarButton, {
           className: 'hkcec-block-tool hkcec-child-action',
+          icon: iconSvg('M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'),
           label: t('Choose existing page'),
           showTooltip: true,
           onClick: openChoose,
-        }, t('Choose existing page'))
+        })
       ),
       modal
     );
@@ -510,9 +795,9 @@
 
   function alignMenu(props, attribute) {
     return menu('align', t('Align'), [
-      { label: t('Left'), value: 'left' },
-      { label: t('Center'), value: 'center' },
-      { label: t('Right'), value: 'right' },
+      { label: t('Left'), value: 'left', icon: 'align-left' },
+      { label: t('Center'), value: 'center', icon: 'align-center' },
+      { label: t('Right'), value: 'right', icon: 'align-right' },
     ], (props.attributes && props.attributes[attribute]) || '', function (value) {
       var next = {};
       next[attribute] = (props.attributes && props.attributes[attribute]) === value ? undefined : value;

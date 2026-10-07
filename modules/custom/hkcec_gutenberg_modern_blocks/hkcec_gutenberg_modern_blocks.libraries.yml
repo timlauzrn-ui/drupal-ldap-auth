@@ -38,7 +38,7 @@ blocks:
     - gutenberg/components
 
 editor:
-  version: 1.7.18
+  version: 1.7.32
   js:
     js/editor-patterns.js: {}
     js/editor-word-toolbar.js: {}

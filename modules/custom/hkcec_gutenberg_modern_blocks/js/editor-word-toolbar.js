@@ -2,9 +2,12 @@
  * @file
  * Extra Word-style controls on the Gutenberg text toolbar.
  *
- * Bold, Italic, and Link stay in their own slots. Every other core format
- * button is moved onto that same bar, and this file does not add a second
- * copy of Strikethrough, Subscript, Superscript, or Highlight.
+ * The bar stays beside the selected text, the same way a document toolbar
+ * sits on the passage being edited. It is not pinned to the top of the page.
+ *
+ * Bold, Italic, Underline, and Link stay on the row. Align is one menu.
+ * Font, color, and the other formats open from More formatting, so this
+ * file does not add a second copy of those buttons.
  */
 (function (Drupal) {
   'use strict';
@@ -12,11 +15,11 @@
   var SLOT = 'RichText.ToolbarControls.unknown';
 
   var FONTS = [
-    { label: 'Arial', style: 'font-family:Arial,sans-serif' },
-    { label: 'Georgia', style: 'font-family:Georgia,serif' },
-    { label: 'Verdana', style: 'font-family:Verdana,sans-serif' },
-    { label: 'Tahoma', style: 'font-family:Tahoma,sans-serif' },
-    { label: 'Courier', style: 'font-family:Courier,monospace' },
+    { label: 'Arial', family: 'Arial, sans-serif', style: 'font-family:Arial,sans-serif' },
+    { label: 'Georgia', family: 'Georgia, serif', style: 'font-family:Georgia,serif' },
+    { label: 'Verdana', family: 'Verdana, sans-serif', style: 'font-family:Verdana,sans-serif' },
+    { label: 'Tahoma', family: 'Tahoma, sans-serif', style: 'font-family:Tahoma,sans-serif' },
+    { label: 'Courier', family: 'Courier, monospace', style: 'font-family:Courier,monospace' },
   ];
 
   var SIZES = [12, 14, 16, 18, 20, 24, 32];
@@ -65,34 +68,23 @@
     return svg(window.wp.element.createElement('path', { d: d, fill: 'currentColor' }));
   }
 
-  function iconLetter(letter, underline, script) {
-    var el = window.wp.element.createElement;
-    var nodes = [
-      el(
-        'text',
-        {
-          x: '10',
-          y: '16',
-          textAnchor: 'middle',
-          fontSize: '14',
-          fontFamily: 'Arial, sans-serif',
-          fontWeight: '700',
-          fill: 'currentColor',
-        },
-        letter
-      ),
-    ];
-    if (underline) {
-      nodes.push(el('rect', { x: '4', y: '18', width: '12', height: '2', fill: 'currentColor' }));
-    }
-    if (script === 'sub') {
-      nodes.push(el('text', { x: '18', y: '20', fontSize: '9', fontFamily: 'Arial, sans-serif', fill: 'currentColor' }, '2'));
-    }
-    if (script === 'sup') {
-      nodes.push(el('text', { x: '18', y: '10', fontSize: '9', fontFamily: 'Arial, sans-serif', fill: 'currentColor' }, '2'));
-    }
-    return svg(nodes);
-  }
+  var ICONS = {
+    underline: 'M7 18v1h10v-1H7zm5-2c1.5 0 2.6-.4 3.4-1.2.8-.8 1.1-2 1.1-3.5V5H15v5.8c0 1.2-.2 2.1-.6 2.8-.4.7-1.2 1-2.4 1s-2-.3-2.4-1c-.4-.7-.6-1.6-.6-2.8V5H7.5v6.2c0 1.5.4 2.7 1.1 3.5.8.9 1.9 1.3 3.4 1.3z',
+    alignLeft: 'M13 5.5H4V4h9v1.5Zm7 7H4V11h16v1.5Zm-7 7H4V18h9v1.5Z',
+    alignCenter: 'M7.5 5.5h9V4h-9v1.5Zm-3.5 7h16V11H4v1.5Zm3.5 7h9V18h-9v1.5Z',
+    alignRight: 'M11.111 5.5H20V4h-8.889v1.5ZM4 12.5h16V11H4v1.5Zm7.111 7H20V18h-8.889v1.5Z',
+    strikethrough: 'M9.1 9v-.5c0-.6.2-1.1.7-1.4.5-.3 1.2-.5 2-.5.7 0 1.4.1 2.1.3.7.2 1.4.5 2.1.9l.2-1.9c-.6-.3-1.2-.5-1.9-.7-.8-.1-1.6-.2-2.4-.2-1.5 0-2.7.3-3.6 1-.8.7-1.2 1.5-1.2 2.6V9h2zM20 12H4v1h8.3c.3.1.6.2.8.3.5.2.9.5 1.1.8.3.3.4.7.4 1.2 0 .7-.2 1.1-.8 1.5-.5.3-1.2.5-2.1.5-.8 0-1.6-.1-2.4-.3-.8-.2-1.5-.5-2.2-.8L7 18.1c.5.2 1.2.4 2 .6.8.2 1.6.3 2.4.3 1.7 0 3-.3 3.9-1 .9-.7 1.3-1.6 1.3-2.8 0-.9-.2-1.7-.7-2.2H20v-1z',
+    subscript: 'M16.9 18.3l.8-1.2c.4-.6.7-1.2.9-1.6.2-.4.3-.8.3-1.2 0-.3-.1-.7-.2-1-.1-.3-.4-.5-.6-.7-.3-.2-.6-.3-1-.3s-.8.1-1.1.2c-.3.1-.7.3-1 .6l.2 1.3c.3-.3.5-.5.8-.6s.6-.2.9-.2c.3 0 .5.1.7.2.2.2.2.4.2.7 0 .3-.1.5-.2.8-.1.3-.4.7-.8 1.3L15 19.4h4.3v-1.2h-2.4zM14.1 7.2h-2L9.5 11 6.9 7.2h-2l3.6 5.3L4.7 18h2l2.7-4 2.7 4h2l-3.8-5.5 3.8-5.3z',
+    superscript: 'M16.9 10.3l.8-1.3c.4-.6.7-1.2.9-1.6.2-.4.3-.8.3-1.2 0-.3-.1-.7-.2-1-.2-.2-.4-.4-.7-.6-.3-.2-.6-.3-1-.3s-.8.1-1.1.2c-.3.1-.7.3-1 .6l.1 1.3c.3-.3.5-.5.8-.6s.6-.2.9-.2c.3 0 .5.1.7.2.2.2.2.4.2.7 0 .3-.1.5-.2.8-.1.3-.4.7-.8 1.3l-1.8 2.8h4.3v-1.2h-2.2zm-2.8-3.1h-2L9.5 11 6.9 7.2h-2l3.6 5.3L4.7 18h2l2.7-4 2.7 4h2l-3.8-5.5 3.8-5.3z',
+    code: 'M20.8 10.7l-4.3-4.3-1.1 1.1 4.3 4.3c.1.1.1.3 0 .4l-4.3 4.3 1.1 1.1 4.3-4.3c.7-.8.7-1.9 0-2.6zM4.2 11.8l4.3-4.3-1-1-4.3 4.3c-.7.7-.7 1.8 0 2.5l4.3 4.3 1.1-1.1-4.3-4.3c-.2-.1-.2-.3-.1-.4z',
+    keyboard: 'M8 12.5h8V11H8v1.5ZM19 6.5H5a2 2 0 0 0-2 2V15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a2 2 0 0 0-2-2ZM5 8h14a.5.5 0 0 1 .5.5V15a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V8.5A.5.5 0 0 1 5 8Z',
+    language: 'M17.5 10h-1.7l-3.7 10.5h1.7l.9-2.6h3.9l.9 2.6h1.7L17.5 10zm-2.2 6.3 1.4-4 1.4 4h-2.8zm-4.8-3.8c1.6-1.8 2.9-3.6 3.7-5.7H16V5.2h-5.8V3H8.8v2.2H3v1.5h9.6c-.7 1.6-1.8 3.1-3.1 4.6C8.6 10.2 7.8 9 7.2 8H5.6c.6 1.4 1.7 2.9 2.9 4.4l-2.4 2.4c-.3.4-.7.8-1.1 1.2l1 1 1.2-1.2c.8-.8 1.6-1.5 2.3-2.3.8.9 1.7 1.7 2.5 2.5l.6-1.5c-.7-.6-1.4-1.3-2.1-2z',
+    textColor: 'M12.9 6h-2l-4 11h1.9l1.1-3h4.2l1.1 3h1.9L12.9 6zm-2.5 6.5l1.5-4.9 1.7 4.9h-3.2z',
+    fontSize: 'M8.5 4.5h-2L2 16h2l1-2.8h5L11 16h2L8.5 4.5zM6.2 11.2L7.5 7.2l1.3 4H6.2zM15 7h6v1.5h-2.25V16h-1.5V8.5H15V7z',
+    image: 'M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm0 1.5v13h16v-13H4zm5 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM4 16.5l4-3 2 2 3-4 7 5v1.5H4v-1.5z',
+    clear: 'M15.5 4.5l4 4-8.5 8.5H7v-4L15.5 4.5zM8.5 12.4L15.1 5.8l2.1 2.1-6.6 6.6H8.5v-2.1zM4 19h16v1.5H4V19z',
+    reset: 'M12 5a7 7 0 1 0 6.3 4H16v1.5h5V5.5h-1.5V8A8.5 8.5 0 1 1 12 3.5V5z',
+  };
 
   function swatch(color) {
     return svg(
@@ -189,7 +181,22 @@
       }
     }, []);
 
+    var selectionRef = wp.element.useRef ? wp.element.useRef(null) : { current: null };
+    if (value && value.start !== value.end) {
+      selectionRef.current = value;
+    }
+    var source = (selectionRef.current && selectionRef.current.start !== selectionRef.current.end)
+      ? selectionRef.current
+      : value;
+
+    function keepSelection(event) {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+    }
+
     function commit(next) {
+      selectionRef.current = next;
       if (typeof onChange === 'function') {
         onChange(next);
       }
@@ -200,7 +207,7 @@
 
     function toggleCore(type, extra) {
       try {
-        commit(wp.richText.toggleFormat(value, Object.assign({ type: type }, extra || {})));
+        commit(wp.richText.toggleFormat(source, Object.assign({ type: type }, extra || {})));
       }
       catch (e) {
         // Leave the editor usable if a core format is missing.
@@ -209,11 +216,11 @@
 
     function applyStyle(type, style) {
       try {
-        if (styleIs(value, type, style)) {
-          commit(wp.richText.removeFormat(value, type));
+        if (styleIs(source, type, style)) {
+          commit(wp.richText.removeFormat(source, type));
           return;
         }
-        commit(wp.richText.applyFormat(value, {
+        commit(wp.richText.applyFormat(source, {
           type: type,
           attributes: { style: style },
         }));
@@ -225,7 +232,7 @@
 
     function removeStyle(type) {
       try {
-        commit(wp.richText.removeFormat(value, type));
+        commit(wp.richText.removeFormat(source, type));
       }
       catch (e) {
         // Ignore.
@@ -243,7 +250,7 @@
             }
           });
         }
-        var next = value;
+        var next = source;
         names.forEach(function (name) {
           next = wp.richText.removeFormat(next, name);
         });
@@ -257,8 +264,18 @@
     function setAlign(next) {
       try {
         var block = selected || wp.data.select('core/block-editor').getSelectedBlock();
+        if (!block) {
+          return;
+        }
+        if (block.name === 'core/list-item') {
+          var listAlign = (block.attributes && block.attributes.hkcecTextAlign) || '';
+          wp.data.dispatch('core/block-editor').updateBlockAttributes(block.clientId, {
+            hkcecTextAlign: listAlign === next ? undefined : next,
+          });
+          return;
+        }
         var key = alignKey(block);
-        if (!block || !key) {
+        if (!key) {
           return;
         }
         var current = (block.attributes && block.attributes[key]) || '';
@@ -283,45 +300,23 @@
         icon: icon,
         isPressed: !!pressed,
         disabled: !!disabled,
+        onMouseDown: keepSelection,
         onClick: onClick,
       }));
     }
 
-    function styleMenu(key, title, icon, type, choices) {
-      var controls = choices.map(function (choice) {
-        return {
-          title: choice.label,
-          icon: choice.icon,
-          isActive: styleIs(value, type, choice.style),
-          onClick: function () {
-            applyStyle(type, choice.style);
-          },
-        };
-      });
-      controls.push({
-        title: t('Default'),
-        onClick: function () {
-          removeStyle(type);
-        },
-      });
-      return fill(key, el(ToolbarDropdownMenu, {
-        className: 'hkcec-word-tool',
-        label: title,
-        icon: icon,
-        popoverProps: { className: 'hkcec-word-popover', placement: 'bottom-start' },
-        controls: controls,
-      }));
-    }
-
-    var alignAttr = alignKey(selected);
+    var listAlign = selected && selected.name === 'core/list-item';
+    var alignAttr = listAlign ? 'hkcecTextAlign' : alignKey(selected);
     var currentAlign = (alignAttr && selected.attributes && selected.attributes[alignAttr]) || '';
     var alignDisabled = !alignAttr;
+    var alignIcon = currentAlign === 'center'
+      ? ICONS.alignCenter
+      : (currentAlign === 'right' ? ICONS.alignRight : ICONS.alignLeft);
 
     var fontChoices = FONTS.map(function (font) {
       return {
-        label: font.label,
+        label: el('span', { style: { fontFamily: font.family } }, font.label),
         style: font.style,
-        icon: iconLetter('A', false),
       };
     });
     var sizeChoices = SIZES.map(function (size) {
@@ -329,7 +324,7 @@
       return {
         label: size + ' px',
         style: style,
-        icon: iconLetter('A', false),
+        icon: iconPath(ICONS.fontSize),
       };
     });
     var colorChoices = COLORS.map(function (color) {
@@ -347,29 +342,202 @@
       };
     });
 
+    function labeledChoices(type, choices, resetTitle) {
+      var controls = choices.map(function (choice) {
+        return {
+          title: choice.label,
+          icon: choice.icon,
+          isActive: styleIs(source, type, choice.style),
+          onClick: function () {
+            applyStyle(type, choice.style);
+          },
+        };
+      });
+      controls.push({
+        title: resetTitle,
+        icon: iconPath(ICONS.reset),
+        onClick: function () {
+          removeStyle(type);
+        },
+      });
+      return controls;
+    }
+
+    function formatToggle(title, type, icon) {
+      return {
+        title: title,
+        icon: iconPath(icon),
+        isActive: !!activeFormat(source, type),
+        onClick: function () {
+          toggleCore(type);
+        },
+      };
+    }
+
+    function applyLanguage(lang) {
+      try {
+        if (!lang) {
+          commit(wp.richText.removeFormat(source, 'core/language'));
+          return;
+        }
+        commit(wp.richText.applyFormat(source, {
+          type: 'core/language',
+          attributes: { lang: lang, dir: 'ltr' },
+        }));
+      }
+      catch (e) {
+        // Ignore a failed language apply.
+      }
+    }
+
+    function insertInlineImage(media) {
+      try {
+        if (!media || !wp.richText.insertObject) {
+          return;
+        }
+        var width = media.width ? Math.min(media.width, 150) : 150;
+        commit(wp.richText.insertObject(source, {
+          type: 'core/image',
+          attributes: {
+            className: 'wp-image-' + (media.id || ''),
+            style: 'width: ' + width + 'px;',
+            url: media.url,
+            alt: media.alt || '',
+          },
+        }));
+      }
+      catch (e) {
+        // Ignore a failed inline image insert.
+      }
+    }
+
+    function moreControls(openImage) {
+      var controls = []
+        .concat(labeledChoices('hkcec/font-family', fontChoices, t('Default font')))
+        .concat(labeledChoices('hkcec/font-size', sizeChoices, t('Default size')))
+        .concat(labeledChoices('hkcec/font-color', colorChoices, t('Default color')))
+        .concat(labeledChoices('hkcec/font-highlight', highlightChoices, t('Default highlight')))
+        .concat([
+          formatToggle(t('Strikethrough'), 'core/strikethrough', ICONS.strikethrough),
+          formatToggle(t('Subscript'), 'core/subscript', ICONS.subscript),
+          formatToggle(t('Superscript'), 'core/superscript', ICONS.superscript),
+          formatToggle(t('Inline code'), 'core/code', ICONS.code),
+          formatToggle(t('Keyboard input'), 'core/keyboard', ICONS.keyboard),
+          {
+            title: t('English'),
+            icon: iconPath(ICONS.language),
+            onClick: function () {
+              applyLanguage('en');
+            },
+          },
+          {
+            title: t('Traditional Chinese'),
+            icon: iconPath(ICONS.language),
+            onClick: function () {
+              applyLanguage('zh-HK');
+            },
+          },
+          {
+            title: t('Simplified Chinese'),
+            icon: iconPath(ICONS.language),
+            onClick: function () {
+              applyLanguage('zh-CN');
+            },
+          },
+          {
+            title: t('Remove language'),
+            icon: iconPath(ICONS.language),
+            onClick: function () {
+              applyLanguage('');
+            },
+          },
+        ]);
+      if (openImage) {
+        controls.push({
+          title: t('Inline image'),
+          icon: iconPath(ICONS.image),
+          onClick: openImage,
+        });
+      }
+      controls.push({
+        title: t('Clear formatting'),
+        icon: iconPath(ICONS.clear),
+        onClick: clearFormatting,
+      });
+      return controls;
+    }
+
+    function moreMenu(openImage) {
+      return el(ToolbarDropdownMenu, {
+        className: 'hkcec-word-tool',
+        label: t('More formatting'),
+        icon: iconPath('M5 10h2v2H5v-2zm6 0h2v2h-2v-2zm6 0h2v2h-2v-2z'),
+        toggleProps: { onMouseDown: keepSelection },
+        popoverProps: { className: 'hkcec-word-popover hkcec-more-popover', placement: 'bottom-start' },
+        controls: moreControls(openImage),
+      });
+    }
+
+    var MediaUpload = wp.blockEditor && wp.blockEditor.MediaUpload;
+    var more = (MediaUpload && wp.richText.insertObject)
+      ? el(MediaUpload, {
+        allowedTypes: ['image'],
+        onSelect: insertInlineImage,
+        render: function (handlers) {
+          return moreMenu(handlers.open);
+        },
+      })
+      : moreMenu(null);
+
     return el(
       wp.element.Fragment,
       null,
-      toolButton('underline', t('Underline'), iconLetter('U', true), activeFormat(value, 'core/underline'), function () {
+      toolButton('underline', t('Underline'), iconPath(ICONS.underline), activeFormat(source, 'core/underline'), function () {
         toggleCore('core/underline', {
           attributes: { style: 'text-decoration: underline;' },
           title: t('Underline'),
         });
       }),
-      styleMenu('font', t('Font'), iconLetter('F', false), 'hkcec/font-family', fontChoices),
-      styleMenu('size', t('Font size'), iconLetter('A', false), 'hkcec/font-size', sizeChoices),
-      styleMenu('color', t('Text color'), swatch('#1d4ed8'), 'hkcec/font-color', colorChoices),
-      styleMenu('highlight', t('Highlight'), swatch('#fef08a'), 'hkcec/font-highlight', highlightChoices),
-      toolButton('align-left', t('Align left'), iconPath('M4 6h16v2H4V6zm0 4h10v2H4v-2zm0 4h16v2H4v-2zm0 4h10v2H4v-2z'), !alignDisabled && (currentAlign === 'left' || currentAlign === ''), function () {
-        setAlign('left');
-      }, alignDisabled),
-      toolButton('align-center', t('Align center'), iconPath('M4 6h16v2H4V6zm3 4h10v2H7v-2zm-3 4h16v2H4v-2zm3 4h10v2H7v-2z'), currentAlign === 'center', function () {
-        setAlign('center');
-      }, alignDisabled),
-      toolButton('align-right', t('Align right'), iconPath('M4 6h16v2H4V6zm6 4h10v2H10v-2zm-6 4h16v2H4v-2zm6 4h10v2H10v-2z'), currentAlign === 'right', function () {
-        setAlign('right');
-      }, alignDisabled),
-      toolButton('clear', t('Clear formatting'), iconPath('M12 3a9 9 0 100 18 9 9 0 000-18zm-5 8h10v2H7v-2z'), false, clearFormatting, false)
+      fill('align', el(ToolbarDropdownMenu, {
+        className: 'hkcec-word-tool',
+        label: t('Align'),
+        icon: iconPath(alignIcon),
+        toggleProps: { onMouseDown: keepSelection },
+        popoverProps: { className: 'hkcec-word-popover', placement: 'bottom-start' },
+        controls: [
+          {
+            title: t('Align left'),
+            icon: iconPath(ICONS.alignLeft),
+            isActive: !alignDisabled && (currentAlign === 'left' || currentAlign === ''),
+            onClick: function () {
+              if (!alignDisabled) {
+                setAlign('left');
+              }
+            },
+          },
+          {
+            title: t('Align center'),
+            icon: iconPath(ICONS.alignCenter),
+            isActive: currentAlign === 'center',
+            onClick: function () {
+              if (!alignDisabled) {
+                setAlign('center');
+              }
+            },
+          },
+          {
+            title: t('Align right'),
+            icon: iconPath(ICONS.alignRight),
+            isActive: currentAlign === 'right',
+            onClick: function () {
+              if (!alignDisabled) {
+                setAlign('right');
+              }
+            },
+          },
+        ],
+      })),
+      fill('more', more)
     );
   }
 
@@ -449,119 +617,6 @@
     }
   }
 
-  function mainToggle(formatName, title, icon) {
-    return function (props) {
-      var wp = window.wp;
-      var el = wp.element.createElement;
-      return el(wp.components.Fill, { name: SLOT }, el(wp.components.ToolbarButton, {
-        className: 'hkcec-word-tool',
-        title: title,
-        label: title,
-        icon: icon,
-        isPressed: !!props.isActive,
-        onClick: function () {
-          try {
-            props.onChange(wp.richText.toggleFormat(props.value, {
-              type: formatName,
-              title: title,
-            }));
-            if (typeof props.onFocus === 'function') {
-              props.onFocus();
-            }
-          }
-          catch (e) {
-            // Keep the editor open if one format cannot toggle.
-          }
-        },
-      }));
-    };
-  }
-
-  function languageEdit(props) {
-    var wp = window.wp;
-    var el = wp.element.createElement;
-    var languages = [
-      { label: t('English'), lang: 'en' },
-      { label: t('Traditional Chinese'), lang: 'zh-HK' },
-      { label: t('Simplified Chinese'), lang: 'zh-CN' },
-    ];
-    var controls = languages.map(function (item) {
-      return {
-        title: item.label,
-        onClick: function () {
-          try {
-            props.onChange(wp.richText.applyFormat(props.value, {
-              type: 'core/language',
-              attributes: { lang: item.lang, dir: 'ltr' },
-            }));
-          }
-          catch (e) {
-            // Ignore a failed language apply.
-          }
-        },
-      };
-    });
-    controls.push({
-      title: t('Remove language'),
-      onClick: function () {
-        try {
-          props.onChange(wp.richText.removeFormat(props.value, 'core/language'));
-        }
-        catch (e) {
-          // Ignore.
-        }
-      },
-    });
-    return el(wp.components.Fill, { name: SLOT }, el(wp.components.ToolbarDropdownMenu, {
-      className: 'hkcec-word-tool',
-      label: t('Language'),
-      icon: iconLetter('L', false),
-      popoverProps: { className: 'hkcec-word-popover', placement: 'bottom-start' },
-      controls: controls,
-    }));
-  }
-
-  function inlineImageEdit(props) {
-    var wp = window.wp;
-    var el = wp.element.createElement;
-    var MediaUpload = wp.blockEditor && wp.blockEditor.MediaUpload;
-    if (!MediaUpload || !wp.richText.insertObject) {
-      return null;
-    }
-    return el(wp.components.Fill, { name: SLOT }, el(MediaUpload, {
-      allowedTypes: ['image'],
-      onSelect: function (media) {
-        try {
-          var width = media && media.width ? Math.min(media.width, 150) : 150;
-          props.onChange(wp.richText.insertObject(props.value, {
-            type: 'core/image',
-            attributes: {
-              className: 'wp-image-' + (media.id || ''),
-              style: 'width: ' + width + 'px;',
-              url: media.url,
-              alt: media.alt || '',
-            },
-          }));
-          if (typeof props.onFocus === 'function') {
-            props.onFocus();
-          }
-        }
-        catch (e) {
-          // Ignore a failed inline image insert.
-        }
-      },
-      render: function (handlers) {
-        return el(wp.components.ToolbarButton, {
-          className: 'hkcec-word-tool',
-          title: t('Inline image'),
-          label: t('Inline image'),
-          icon: iconLetter('I', false),
-          onClick: handlers.open,
-        });
-      },
-    }));
-  }
-
   function moveFormatToToolbar(name, edit, extra) {
     var wp = window.wp;
     var current = wp.data.select('core/rich-text').getFormatType(name);
@@ -605,19 +660,20 @@
     if (!store || typeof store.getFormatType !== 'function' || !store.getFormatType('core/bold')) {
       return false;
     }
+    function hiddenEdit() {
+      return null;
+    }
     try {
-      moveFormatToToolbar('core/code', mainToggle('core/code', t('Inline code'), iconLetter('</>', false)));
-      moveFormatToToolbar('core/keyboard', mainToggle('core/keyboard', t('Keyboard input'), iconLetter('K', false)));
-      moveFormatToToolbar('core/strikethrough', mainToggle('core/strikethrough', t('Strikethrough'), iconLetter('S', true)));
-      moveFormatToToolbar('core/subscript', mainToggle('core/subscript', t('Subscript'), iconLetter('X', false, 'sub')));
-      moveFormatToToolbar('core/superscript', mainToggle('core/superscript', t('Superscript'), iconLetter('X', false, 'sup')));
-      moveFormatToToolbar('core/language', languageEdit, {
+      moveFormatToToolbar('core/code', hiddenEdit);
+      moveFormatToToolbar('core/keyboard', hiddenEdit);
+      moveFormatToToolbar('core/strikethrough', hiddenEdit);
+      moveFormatToToolbar('core/subscript', hiddenEdit);
+      moveFormatToToolbar('core/superscript', hiddenEdit);
+      moveFormatToToolbar('core/language', hiddenEdit, {
         attributes: { lang: 'lang', dir: 'dir' },
       });
-      moveFormatToToolbar('core/image', inlineImageEdit);
-      moveFormatToToolbar('core/text-color', function () {
-        return null;
-      });
+      moveFormatToToolbar('core/image', hiddenEdit);
+      moveFormatToToolbar('core/text-color', hiddenEdit);
       window.hkcecFormatsMoved = true;
       return true;
     }
@@ -626,25 +682,125 @@
     }
   }
 
-  function enableTopToolbar() {
+  function clearFixedToolbar() {
     var wp = window.wp;
-    if (!wp || !wp.data || typeof wp.data.dispatch !== 'function') {
-      return false;
-    }
     try {
+      var prefSelect = wp.data.select('core/preferences');
       var prefs = wp.data.dispatch('core/preferences');
-      if (!prefs || typeof prefs.set !== 'function') {
-        return false;
+      if (prefSelect && prefs && typeof prefSelect.get === 'function' && typeof prefs.set === 'function' && prefSelect.get('core/edit-post', 'fixedToolbar')) {
+        prefs.set('core/edit-post', 'fixedToolbar', false);
       }
-      prefs.set('core/edit-post', 'fixedToolbar', true);
-      return true;
     }
     catch (e) {
-      return false;
+      // Preferences can still be loading.
+    }
+    try {
+      var editPost = wp.data.select('core/edit-post');
+      var editDispatch = wp.data.dispatch('core/edit-post');
+      if (editPost && editDispatch && typeof editPost.isFeatureActive === 'function' && editPost.isFeatureActive('fixedToolbar') && typeof editDispatch.toggleFeature === 'function') {
+        editDispatch.toggleFeature('fixedToolbar');
+      }
+    }
+    catch (e) {
+      // The older feature flag is optional.
     }
   }
 
+  function placeToolbarBesideSelection() {
+    var wp = window.wp;
+    if (!wp || !wp.data || typeof wp.data.dispatch !== 'function' || typeof wp.data.select !== 'function') {
+      return false;
+    }
+    clearFixedToolbar();
+    if (window.hkcecToolbarPlacementWatch || typeof wp.data.subscribe !== 'function') {
+      return true;
+    }
+    window.hkcecToolbarPlacementWatch = true;
+    var until = Date.now() + 8000;
+    var unsubscribe = wp.data.subscribe(function () {
+      if (Date.now() > until) {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+        return;
+      }
+      if (window.hkcecToolbarPlacementLock) {
+        return;
+      }
+      window.hkcecToolbarPlacementLock = true;
+      try {
+        clearFixedToolbar();
+      }
+      catch (e) {
+        // One preference write must not stop the editor.
+      }
+      window.hkcecToolbarPlacementLock = false;
+    });
+    return true;
+  }
+
+  function registerListItemAlign() {
+    var wp = window.wp;
+    if (!wp || !wp.hooks || typeof wp.hooks.addFilter !== 'function' || !wp.blocks || !wp.element) {
+      return false;
+    }
+    try {
+      var type = wp.blocks.getBlockType('core/list-item');
+      if (type && type.attributes && !type.attributes.hkcecTextAlign) {
+        type.attributes.hkcecTextAlign = { type: 'string' };
+      }
+    }
+    catch (e) {
+      // The list block can still be registering.
+    }
+    if (window.hkcecListAlignRegistered) {
+      return true;
+    }
+    window.hkcecListAlignRegistered = true;
+    wp.hooks.addFilter('blocks.registerBlockType', 'hkcec/list-item-align', function (settings, name) {
+      if (name !== 'core/list-item') {
+        return settings;
+      }
+      settings.attributes = Object.assign({}, settings.attributes, {
+        hkcecTextAlign: { type: 'string' },
+      });
+      return settings;
+    });
+    wp.hooks.addFilter('editor.BlockListBlock', 'hkcec/list-item-align', function (BlockListBlock) {
+      return function (props) {
+        var align = props && props.name === 'core/list-item' && props.attributes
+          ? props.attributes.hkcecTextAlign
+          : '';
+        if (align === 'left' || align === 'center' || align === 'right') {
+          props = Object.assign({}, props, {
+            className: ((props.className || '') + ' hkcec-list-align-' + align).trim(),
+          });
+        }
+        return wp.element.createElement(BlockListBlock, props);
+      };
+    });
+    wp.hooks.addFilter('blocks.getSaveContent.extraProps', 'hkcec/list-item-align', function (extraProps, blockType, attributes) {
+      if (!blockType || blockType.name !== 'core/list-item') {
+        return extraProps;
+      }
+      var align = attributes && attributes.hkcecTextAlign;
+      if (align !== 'left' && align !== 'center' && align !== 'right') {
+        return extraProps;
+      }
+      return Object.assign({}, extraProps, {
+        style: Object.assign({}, extraProps && extraProps.style, { textAlign: align }),
+      });
+    });
+    return true;
+  }
+
   function boot(attempt) {
+    try {
+      registerListItemAlign();
+    }
+    catch (e) {
+      // Alignment support must not stop the editor.
+    }
     try {
       promoteCoreFormats();
     }
@@ -671,7 +827,7 @@
       ready = false;
     }
     if (ready) {
-      enableTopToolbar();
+      placeToolbarBesideSelection();
     }
     if (!ready && attempt < 40) {
       window.setTimeout(function () {

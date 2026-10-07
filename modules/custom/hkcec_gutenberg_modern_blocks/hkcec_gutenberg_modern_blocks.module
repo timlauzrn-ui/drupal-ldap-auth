@@ -224,7 +224,7 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
         . '<li>' . t('The page uses Gutenberg Columns for the site hierarchy: left = Quick Navigation, right = resource cards.') . '</li>'
         . '<li>' . t('Topic cards sit in the right column. For a page that starts as one, two, or three columns, use the matching content type: 1 column content, 2 column content, or 3 column content.') . '</li>'
         . '<li>' . t('Each card is a Group: heading + list, or heading + Details (click a Details title to expand or collapse). Add/remove Columns or Groups to change the layout. Template lock is off.') . '</li>'
-        . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
+        . '<li>' . t('Select a list line. On the toolbar beside that line, use Create page or Choose existing page. The new page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
         . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
         . '</ol></div>',
       '#weight' => -50,
@@ -260,7 +260,7 @@ function hkcec_gutenberg_modern_blocks_form_node_form_alter(array &$form, FormSt
       '#markup' => '<div class="gb-page-help"><strong>' . t('@name — origin blocks', ['@name' => $column_names[$bundle]]) . '</strong><ol>'
         . '<li>' . t('This content type starts with Quick Navigation on the left and topic cards in @columns.', ['@columns' => $column_types[$bundle]]) . '</li>'
         . '<li>' . t('Each card is a Group: heading + list. Template lock is off, so you can add or remove cards.') . '</li>'
-        . '<li>' . t('Select a list line and choose Create page. That page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
+        . '<li>' . t('Select a list line. On the toolbar beside that line, use Create page or Choose existing page. The new page uses this same template, is stored under this department page, and the line becomes the link.') . '</li>'
         . '<li>' . t('Custom intranet blocks are not used here. Images: drag onto an Image block, or click to browse.') . '</li>'
         . '</ol></div>',
       '#weight' => -50,
@@ -358,7 +358,7 @@ function hkcec_gutenberg_modern_blocks_alter_department_child_form(array &$form,
   $children = hkcec_gutenberg_modern_blocks_department_children($entity);
   if (!$children) {
     $form['hkcec_children']['empty'] = [
-      '#markup' => '<p>' . t('No pages under this department yet. Select a list line in the editor and choose Create page.') . '</p>',
+      '#markup' => '<p>' . t('No pages under this department yet. Select a list line and use the Create page button on the toolbar beside that line.') . '</p>',
     ];
     return;
   }
