@@ -567,6 +567,85 @@
       }, 50);
     }
 
+    function editorHtml() {
+      try {
+        var wp = window.wp;
+        var blocks = wp.data.select('core/block-editor').getBlocks();
+        if (wp.blocks && typeof wp.blocks.serialize === 'function' && blocks && blocks.length) {
+          return wp.blocks.serialize(blocks) || '';
+        }
+        var editor = wp.data.select('core/editor');
+        if (editor && typeof editor.getEditedPostContent === 'function') {
+          return editor.getEditedPostContent() || '';
+        }
+      }
+      catch (e) {
+        // An unreadable editor cannot be saved from here.
+      }
+      return '';
+    }
+
+    function saveDepartmentPage(html, editUrl) {
+      var field = document.querySelector('[name="body[0][value]"]');
+      var form = document.querySelector('form.node-form');
+      var submit = document.querySelector('#edit-submit');
+      if (!field || !form || !submit || !html) {
+        notify(t('The page could not be saved.'));
+        return;
+      }
+      try {
+        var editor = window.wp.data.dispatch('core/editor');
+        if (editor && typeof editor.editPost === 'function') {
+          editor.editPost({ content: html });
+        }
+      }
+      catch (e) {
+        notify(t('The page could not be saved.'));
+        return;
+      }
+      field.value = html;
+      var action = form.getAttribute('action') || window.location.pathname;
+      var target;
+      var path = editUrl;
+      try {
+        target = new URL(action, window.location.origin);
+        var next = new URL(editUrl, window.location.origin);
+        path = next.pathname + next.search;
+      }
+      catch (e) {
+        notify(t('The page could not be saved.'));
+        return;
+      }
+      target.searchParams.set('destination', path);
+      form.setAttribute('action', target.pathname + target.search);
+      submit.click();
+    }
+
+    function saveAndOpen(data) {
+      if (!data || !data.url || !data.editUrl) {
+        notify(t('The page could not be saved.'));
+        return;
+      }
+      props.setAttributes({
+        content: linkHtml(data.url, data.title || title || plainText(props.attributes && props.attributes.content)),
+      });
+      setOpen('');
+      var started = Date.now();
+      function check() {
+        var html = editorHtml();
+        if (html.indexOf(data.url) !== -1) {
+          saveDepartmentPage(html, data.editUrl);
+          return;
+        }
+        if (Date.now() - started > 2000) {
+          notify(t('The page could not be saved.'));
+          return;
+        }
+        window.setTimeout(check, 50);
+      }
+      window.setTimeout(check, 0);
+    }
+
     function openCreate() {
       if (!settings.parentNid) {
         notify(t('Save this department page before creating a child page.'), 'warning');
@@ -715,7 +794,11 @@
                   title: title,
                   bundle: bundle,
                   html: sectionHtml(props.clientId, title, bundle),
-                }).then(applyLink);
+                }).then(function (data) {
+                  if (data) {
+                    saveAndOpen(data);
+                  }
+                });
               },
             }, busy ? t('Creating…') : t('Create page')),
           ]),

@@ -74,6 +74,7 @@ final class DepartmentChildController extends ControllerBase {
         'nid' => (int) $node->id(),
         'title' => $node->label(),
         'url' => $node->toUrl()->toString(),
+        'editUrl' => $node->toUrl('edit-form')->toString(),
       ]);
     }
     catch (\Throwable $e) {
